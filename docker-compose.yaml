@@ -1,0 +1,54 @@
+services:
+  # 1. TRAEFIK (Reverse Proxy & Load Balancer)
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    # Enable Dashboard (port 8080) and Docker integration
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.web.address=:80"
+    ports:
+      - "80:80"      # The Public Gate (Frontend + Backend)
+      - "8080:8080"  # Traefik Dashboard (http://localhost:8080)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # 2. REDIS (Caching & Locks)
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  # 3. BACKEND (Spring Boot)
+  backend:
+    build: ./booking-backend
+    container_name: booking-backend
+    environment:
+      # Connect to Supabase (Cloud)
+      - SPRING_DATASOURCE_URL=${DB_URL}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      # Connect to Redis (Local Container)
+      - SPRING_DATA_REDIS_HOST=${REDIS_HOST}
+      - SPRING_DATA_REDIS_PORT=${REDIS_PORT}
+    labels:
+      - "traefik.enable=true"
+      # Route all requests starting with /api to this container
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+
+  # 4. FRONTEND (Next.js)
+  frontend:
+    build: ./frontend
+    container_name: booking-frontend
+    environment:
+      # Browser talks to Traefik (localhost), NOT internal container IP
+      - NEXT_PUBLIC_API_URL=http://localhost/api
+    labels:
+      - "traefik.enable=true"
+      # Route everything else (/) to this container
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
