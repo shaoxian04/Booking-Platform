@@ -10,8 +10,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ProviderProfileRepository extends JpaRepository<ProviderProfileDO, UUID> {
-    Optional<ProviderProfileDO> findByUserId (UUID userId);
+    Optional<ProviderProfileDO> findByUser_UserId (UUID userId);
 
     @Query("SELECT p FROM ProviderProfileDO p WHERE LOWER (p.providerName) LIKE LOWER(CONCAT('%',:providerName,'%'))")
-    List<ProviderProfileDO> findByProviderName(@Param("providerName") String providerName);
+    List<ProviderProfileDO> findByProvider_ProviderName(@Param("providerName") String providerName);
 }

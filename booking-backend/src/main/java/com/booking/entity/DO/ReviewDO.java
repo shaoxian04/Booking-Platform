@@ -11,36 +11,37 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "appointment")
+@Table(name = "review")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AppointmentDO {
+public class ReviewDO {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "appointment_id")
-    private UUID id;
+    @Column(name = "review_id")
+    private UUID review_id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "provider_id", nullable = false)
+    private ProviderProfileDO provider;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserDO user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id")
     private ServiceProvideDO service;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private UserDO user;
+    @Column(nullable = false)
+    private Double rating;
 
-    @Column(name = "start_time")
-    private LocalDateTime startTime;
-
-    @Column(name = "end_time")
-    private LocalDateTime endTime;
-
-    private String remarks;
+    @Column(length = 1000)
+    private String comment;
 
     @CreationTimestamp
     @Column(name = "gmt_create", updatable = false)
-    private LocalDateTime gmtCreate;
-
+    private LocalDateTime createdAt;
 }

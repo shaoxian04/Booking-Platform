@@ -5,8 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -40,7 +43,15 @@ public class ServiceProvideDO {
     @Column(name = "image_path")
     private String imagePath;
 
-    private Double rating; // e.g., 4.5
+    private Double rating;
 
     private String comments;
+
+    @CreationTimestamp
+    @Column(name = "gmt_create", updatable = false)
+    private LocalDateTime gmtCreate;
+
+    @UpdateTimestamp
+    @Column(name = "gmt_modified")
+    private LocalDateTime gmtModified;
 }

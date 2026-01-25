@@ -7,5 +7,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ServiceProvideRepository extends JpaRepository<ServiceProvideDO, UUID> {
-    Optional<ServiceProvideDO> findByProviderId(UUID providerId);
+    Optional<ServiceProvideDO> findByProvider_ProviderId(UUID providerId);
 }

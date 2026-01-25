@@ -11,13 +11,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface AppointmentRepository extends JpaRepository<AppointmentDO, UUID> {
-    Optional<AppointmentDO> findByUserId(UUID userId);
+    Optional<AppointmentDO> findByUser_UserId(UUID userId);
 
-    @Query("SELECT a FROM Appointment a WHERE a.service.provider.id = :providerId")
-    List<AppointmentDO> findByProviderId(@Param("providerId") UUID providerId);
+    @Query("SELECT a FROM AppointmentDO a WHERE a.service.provider.providerId = :providerId")
+    List<AppointmentDO> findByProvider_ProviderId(@Param("providerId") UUID providerId);
 
-    @Query("SELECT a FROM Appointment a " +
-            "WHERE a.service.provider.id = :providerId " +
+    @Query("SELECT a FROM AppointmentDO a " +
+            "WHERE a.service.provider.providerId = :providerId " +
             "AND ((a.startTime < :endTime) AND (a.endTime > :startTime))")
     List<AppointmentDO> findOverlappingAppointmentsForProvider(
             @Param("providerId") UUID providerId,

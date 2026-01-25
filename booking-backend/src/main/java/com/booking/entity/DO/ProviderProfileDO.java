@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -35,12 +36,21 @@ public class ProviderProfileDO {
     private String providerBio;
 
     @Column(name = "image_path")
-    private String imagePath;
+    private List<String> imagePath;
+
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
 
     @Column(name = "available_time", nullable = false)
     private String availableTime;
 
     private String location;
+
+    @Column(name = "average_rating")
+    private Double averageRating;
+
+    @Column(name = "total_reviews")
+    private Integer totalReviews;
 
     @Column(name = "ext_info")
     private String extInfo;
