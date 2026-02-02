@@ -16,13 +16,11 @@ import java.util.UUID;
 @Slf4j
 public class SupabaseStorageService {
 
+    private final RestTemplate restTemplate = new RestTemplate();
     @Value("${supabase.url}")
     private String supabaseUrl;
-
     @Value("${supabase.key}")
     private String supabaseKey;
-
-    private final RestTemplate restTemplate = new RestTemplate();
 
     public String uploadFile(MultipartFile file, String bucketName) {
         try {

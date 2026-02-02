@@ -1,6 +1,5 @@
 package com.booking.controller;
 
-import com.booking.common.result.RequestResult;
 import com.booking.entity.DTO.request.LoginRequest;
 import com.booking.entity.DTO.request.RegisterRequest;
 import com.booking.entity.DTO.response.JwtResponse;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")

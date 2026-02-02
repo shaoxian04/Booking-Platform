@@ -17,6 +17,10 @@ public class ApiError {
     private List<String> errorMsg;
     private LocalDateTime timestamp;
 
+    public static ApiError maxSizeUpload () {
+        return new ApiError(HttpStatus.PAYLOAD_TOO_LARGE.value(), List.of("File size is too large! Maximum allowed is 10MB."), LocalDateTime.now());
+    }
+
     public static ApiError badCredentials(Exception ex) {
         return new ApiError(HttpStatus.UNAUTHORIZED.value(), List.of("Invalid username or password"), LocalDateTime.now());
     }
