@@ -14,4 +14,5 @@ public interface ProviderProfileRepository extends JpaRepository<ProviderProfile
 
     boolean existsByProviderNameIgnoreCase(String providerName);
 
+    Optional<ProviderProfileDO> findByUser_UserId(UUID userId);
 }
