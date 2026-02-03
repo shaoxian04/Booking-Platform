@@ -65,13 +65,13 @@ public class ProviderRegistrationServiceImpl implements ProviderRegistrationServ
 
         ProviderProfileDO providerDO = providerMapper.toDO(user, request, profileUrl, imageUrls);
 
-        providerProfileRepository.save(providerDO);
+        ProviderProfileDO newProvider = providerProfileRepository.save(providerDO);
 
         updateUserRole(user);
 
         log.info("Provider registered successfully");
 
-        return providerMapper.toResponse(providerDO);
+        return providerMapper.toResponse(newProvider);
     }
 
     private void providerPreCheck(UserDO user, ProviderRegistrationRequest request) {

@@ -26,6 +26,7 @@ public class ProviderMapper {
 
     public ProviderRegistrationResponse toResponse (ProviderProfileDO providerProfileDO){
         return ProviderRegistrationResponse.builder()
+                .providerName(providerProfileDO.getProviderName())
                 .providerId(providerProfileDO.getProviderId())
                 .providerBio(providerProfileDO.getProviderBio())
                 .imagePath(providerProfileDO.getImagePath())

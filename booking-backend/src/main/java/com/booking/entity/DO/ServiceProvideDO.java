@@ -6,10 +6,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -40,12 +43,15 @@ public class ServiceProvideDO {
 
     private BigDecimal price;
 
-    @Column(name = "image_path")
-    private String imagePath;
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "image_path", columnDefinition = "text[]")
+    private List<String> imagePath;
 
     private Double rating;
 
     private String comments;
+
+    private String remarks;
 
     @CreationTimestamp
     @Column(name = "gmt_create", updatable = false)

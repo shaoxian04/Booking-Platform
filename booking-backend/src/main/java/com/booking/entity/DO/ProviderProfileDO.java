@@ -6,7 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,7 +37,8 @@ public class ProviderProfileDO {
     @Column(name = "provider_bio")
     private String providerBio;
 
-    @Column(name = "image_path")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "image_path", columnDefinition = "text[]")
     private List<String> imagePath;
 
     @Column(name = "profile_image_url")

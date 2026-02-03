@@ -24,6 +24,7 @@ public class SupabaseStorageService {
 
     public String uploadFile(MultipartFile file, String bucketName) {
         try {
+            log.info("Starting upload for: {}", file.getOriginalFilename());
             // 1. Generate unique filename (uuid + original extension)
             String originalFilename = file.getOriginalFilename();
             String extension = originalFilename != null && originalFilename.contains(".")
@@ -46,6 +47,8 @@ public class SupabaseStorageService {
             if (response.getStatusCode().is2xxSuccessful()) {
                 // 5. Construct Public URL
                 // Format: {supabaseUrl}/storage/v1/object/public/{bucket}/{filename}
+                log.info("Supabase response: {}", response);
+
                 return supabaseUrl + "/storage/v1/object/public/" + bucketName + "/" + newFileName;
             } else {
                 throw new RuntimeException("Failed to upload to Supabase: " + response.getStatusCode());
