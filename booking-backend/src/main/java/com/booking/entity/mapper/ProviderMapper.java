@@ -20,7 +20,6 @@ public class ProviderMapper {
                 .profileImageUrl(profileUrl)
                 .user(user)
                 .location(request.getLocation())
-                .extInfo(request.getExtInfo())
                 .build();
     }
 

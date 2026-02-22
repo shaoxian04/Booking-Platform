@@ -31,6 +31,10 @@ public class AppointmentDO {
     @JoinColumn(name = "user_id")
     private UserDO user;
 
+    @ManyToOne
+    @JoinColumn(name = "provider_id")
+    private ProviderProfileDO provider;
+
     @Column(name = "start_time")
     private LocalDateTime startTime;
 

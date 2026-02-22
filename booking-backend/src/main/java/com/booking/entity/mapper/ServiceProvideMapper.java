@@ -33,6 +33,7 @@ public class ServiceProvideMapper {
                 .serviceBio(serviceDO.getServiceBio())
                 .remarks(serviceDO.getRemarks())
                 .gmtCreate(serviceDO.getGmtCreate())
+                .serviceName(serviceDO.getServiceName())
                 .build();
     }
 }

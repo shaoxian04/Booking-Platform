@@ -12,5 +12,5 @@ public interface ServiceProvideService {
 
     public CreateServiceResponse createService (CreateServiceRequest request, List<MultipartFile> images, UserDO user);
 
-    public List<ServiceProvideDO> getServicesByProvider (UserDO user);
+    public List<CreateServiceResponse> getServicesByProvider (UserDO user);
 }

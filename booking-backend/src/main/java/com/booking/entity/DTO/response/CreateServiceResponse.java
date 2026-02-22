@@ -14,6 +14,7 @@ public class CreateServiceResponse {
 
     private UUID serviceId;
     private UUID providerId;
+    private UUID userId;
     private String serviceName;
     private String serviceBio;
     private Integer duration;

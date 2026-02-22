@@ -13,6 +13,7 @@ import com.booking.repository.ProviderProfileRepository;
 import com.booking.repository.ServiceProvideRepository;
 import com.booking.service.provider.ServiceProvideService;
 import com.booking.service.storage.SupabaseStorageService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,7 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
     private static final String SERVICE_IMAGES = "service_images";
 
     @Override
+    @Transactional
     public CreateServiceResponse createService(CreateServiceRequest request, List<MultipartFile> images, UserDO user) {
 
         log.info("create service process start, username = {}", user.getUsername());
@@ -66,13 +68,17 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
     }
 
     @Override
-    public List<ServiceProvideDO> getServicesByProvider(UserDO user) {
+    public List<CreateServiceResponse> getServicesByProvider(UserDO user) {
 
         log.info("get service for provider by user, username = {}", user.getUsername());
 
         ProviderProfileDO provider = providerProfileRepository.findByUser_UserId(user.getUserId())
                 .orElseThrow(() -> new NotFoundException("Provider not found in DB"));
 
-        return serviceProvideRepository.findByProvider_ProviderId(provider.getProviderId());
+        List<ServiceProvideDO> serviceProvideDOS = serviceProvideRepository.findByProvider_ProviderId(provider.getProviderId());
+
+        return serviceProvideDOS.stream()
+                .map(serviceProvideMapper::toResponse)
+                .toList();
     }
 }

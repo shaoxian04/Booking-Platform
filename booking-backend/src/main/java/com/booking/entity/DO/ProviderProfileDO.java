@@ -55,8 +55,8 @@ public class ProviderProfileDO {
     @Column(name = "total_reviews")
     private Integer totalReviews;
 
-    @Column(name = "ext_info")
-    private String extInfo;
+    @Column(name = "max_concurrency")
+    private Integer maxConcurrency;
 
     @CreationTimestamp
     @Column(name = "gmt_create", updatable = false)

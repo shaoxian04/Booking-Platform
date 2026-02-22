@@ -25,4 +25,8 @@ public interface AppointmentRepository extends JpaRepository<AppointmentDO, UUID
             @Param("endTime") LocalDateTime endTime
     );
 
+    @Query("SELECT COUNT(a) FROM AppointmentDO a WHERE a.provider.id = :id " +
+            "AND ((a.startTime < :end) AND (a.endTime > :start))")
+    int countOverlappingAppointments(@Param("id") UUID id, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
 }

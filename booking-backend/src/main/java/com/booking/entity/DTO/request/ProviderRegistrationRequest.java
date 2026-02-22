@@ -18,5 +18,4 @@ public class ProviderRegistrationRequest {
     @NotBlank(message = "location required")
     private String location;
 
-    private String extInfo;
 }

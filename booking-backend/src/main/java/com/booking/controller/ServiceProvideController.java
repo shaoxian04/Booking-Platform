@@ -44,14 +44,14 @@ public class ServiceProvideController {
     }
 
     @GetMapping("/get-services")
-    public ResponseEntity<List<ServiceProvideDO>> getAllServices (Authentication authentication) {
+    public ResponseEntity<List<CreateServiceResponse>> getAllServices (Authentication authentication) {
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         UserDO user = userDetails.getUser();
 
         log.info("get all service for provider by user.username = {}", user.getUsername());
 
-        List<ServiceProvideDO> serviceDos = serviceProvideService.getServicesByProvider(user);
+        List<CreateServiceResponse> serviceDos = serviceProvideService.getServicesByProvider(user);
 
         return ResponseEntity.ok(serviceDos);
     }

@@ -18,14 +18,23 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(FullyBookedException.class)
+    public ResponseEntity<ApiError> handleAlreadyBookedException(FullyBookedException ex) {
+        log.warn("Exception caught", ex);
+
+        return new ResponseEntity<>(ApiError.conflictRequest(ex), HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiError> handleMaxSizeException(MaxUploadSizeExceededException ex) {
+        log.warn("Exception caught", ex);
+
         return new ResponseEntity<>(ApiError.maxSizeUpload(), HttpStatus.PAYLOAD_TOO_LARGE);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationErrors(MethodArgumentNotValidException ex) {
-        log.warn("Exception caught",ex);
+        log.warn("Exception caught", ex);
 
         // 1. Get all validation error messages (e.g., "Email is required", "Password too short")
         List<String> errors = ex.getBindingResult()
@@ -39,28 +48,28 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex) {
-        log.warn("Exception caught",ex);
+        log.warn("Exception caught", ex);
 
         return new ResponseEntity<>(ApiError.badCredentials(ex), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(AlreadyExistedException.class)
-    public ResponseEntity<ApiError> handleAlreadyExistedException (AlreadyExistedException ex) {
-        log.warn("Exception caught",ex);
+    public ResponseEntity<ApiError> handleAlreadyExistedException(AlreadyExistedException ex) {
+        log.warn("Exception caught", ex);
 
         return new ResponseEntity<>(ApiError.conflictRequest(ex), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiError> handleRuntimeException(RuntimeException ex) {
-        log.warn("Exception caught",ex);
+        log.warn("Exception caught", ex);
 
-       return new ResponseEntity<>(ApiError.badRequest(ex), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(ApiError.badRequest(ex), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGenericException(Exception ex) {
-        log.error("Exception caught",ex);
+        log.error("Exception caught", ex);
 
         return new ResponseEntity<>(ApiError.internalServerError(ex), HttpStatus.INTERNAL_SERVER_ERROR);
     }
