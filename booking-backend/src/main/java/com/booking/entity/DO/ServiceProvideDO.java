@@ -60,4 +60,7 @@ public class ServiceProvideDO {
     @UpdateTimestamp
     @Column(name = "gmt_modified")
     private LocalDateTime gmtModified;
+
+    @Column(nullable = false)
+    private boolean published = true;
 }

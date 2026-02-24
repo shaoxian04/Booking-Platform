@@ -1,6 +1,6 @@
 package com.booking.service.appoiment;
 
-import com.booking.common.exception.FullyBookedException;
+import com.booking.common.exception.TimeSlotUnavailableException;
 import com.booking.common.exception.NotFoundException;
 import com.booking.common.util.AssertUtil;
 import com.booking.entity.DO.AppointmentDO;
@@ -12,6 +12,7 @@ import com.booking.entity.DTO.response.AppointmentResponse;
 import com.booking.entity.mapper.AppointmentMapper;
 import com.booking.repository.AppointmentRepository;
 import com.booking.repository.ProviderProfileRepository;
+import com.booking.repository.ScheduleOverrideRepository;
 import com.booking.repository.ServiceProvideRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -37,6 +39,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentMapper appointmentMapper;
 
+    private final ScheduleOverrideRepository scheduleOverrideRepository;
+
     @Override
     @Transactional
     public AppointmentResponse createAppointment(CreateAppointmentRequest request, UserDO user) {
@@ -49,9 +53,12 @@ public class AppointmentServiceImpl implements AppointmentService {
         ProviderProfileDO providerDo = providerProfileRepository.findByIdWithLock(serviceDo.getProvider().getProviderId())
                 .orElseThrow(() -> new NotFoundException("no provider found for the service in appointment request"));
 
-        AssertUtil.isTrue(appointmentRepository.countOverlappingAppointments(providerDo.getProviderId(), request.getStartTime(), request.getEndTime()) <= providerDo.getMaxConcurrency(), new FullyBookedException("The appointment time is unavailable"));
+        AssertUtil.isTrue(scheduleOverrideRepository.findOverlappingOverridesByService(providerDo.getProviderId(), serviceDo.getServiceId(), request.getStartTime(), request.getEndTime()).isEmpty(),
+                new TimeSlotUnavailableException("The time slot is unavailable for provider"));
 
-        AppointmentDO appointmentDO = appointmentMapper.toDO(request, serviceDo, user);
+        AssertUtil.isTrue(appointmentRepository.countOverlappingAppointments(providerDo.getProviderId(), request.getStartTime(), request.getEndTime()) < providerDo.getMaxConcurrency(), new TimeSlotUnavailableException("The appointment time is booked"));
+
+        AppointmentDO appointmentDO = appointmentMapper.toDO(request, serviceDo, user, providerDo);
 
         AppointmentDO newDo = appointmentRepository.save(appointmentDO);
 
@@ -63,6 +70,9 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentResponse deleteAppointment(UUID appointmentId, UserDO user) {
 
         log.info("delete appointment service start, user id = {}, appointment id = {}", user.getUserId(), appointmentId);
+
+        List<AppointmentDO> list = appointmentRepository.findAll();
+        log.info("list = {}",list);
 
         AppointmentDO appointmentDO = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new NotFoundException("The appointment not found in delete appointment service"));

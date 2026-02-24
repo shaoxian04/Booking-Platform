@@ -18,8 +18,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(FullyBookedException.class)
-    public ResponseEntity<ApiError> handleAlreadyBookedException(FullyBookedException ex) {
+    @ExceptionHandler(TimeSlotUnavailableException.class)
+    public ResponseEntity<ApiError> handleAlreadyBookedException(TimeSlotUnavailableException ex) {
         log.warn("Exception caught", ex);
 
         return new ResponseEntity<>(ApiError.conflictRequest(ex), HttpStatus.CONFLICT);

@@ -22,7 +22,7 @@ public class AppointmentController {
 
     private final AppointmentService appointmentService;
 
-    @PostMapping("/create")
+    @PostMapping("/")
     public ResponseEntity<AppointmentResponse> createAppointment(@Valid @RequestBody CreateAppointmentRequest request, Authentication authentication) {
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();

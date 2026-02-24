@@ -8,10 +8,11 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "service_provide")
+@Table(name = "schedule_override")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,10 +34,19 @@ public class ScheduleOverrideDO {
     @Column(name = "end_time")
     private LocalDateTime endTime;
 
-    private String remarks; // Reason for override (e.g., "Sick Leave")
+    private String remarks; 
 
     @CreationTimestamp
     @Column(name = "gmt_create", updatable = false)
     private LocalDateTime gmtCreate;
+
+    @ManyToMany
+    @JoinTable(
+            name = "override_service_mapping",
+            joinColumns = @JoinColumn(name = "override_id"),
+            inverseJoinColumns = @JoinColumn(name = "service_id")
+    )
+    private List<ServiceProvideDO> specificServices;
+
 
 }

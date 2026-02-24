@@ -7,6 +7,7 @@ import com.booking.entity.DTO.response.CreateServiceResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class ServiceProvideMapper {

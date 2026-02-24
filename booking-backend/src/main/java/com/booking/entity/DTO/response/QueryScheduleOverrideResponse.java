@@ -8,13 +8,9 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class AppointmentResponse {
-    private UUID appointmentId;
-    private UUID serviceId;
-    private UUID providerId;
-    private UUID userId;
-    private LocalDateTime gmtCreate;
+public class QueryScheduleOverrideResponse {
+
     private LocalDateTime startTime;
+
     private LocalDateTime endTime;
-    private String remarks;
 }

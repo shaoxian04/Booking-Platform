@@ -1,6 +1,7 @@
 package com.booking.entity.mapper;
 
 import com.booking.entity.DO.AppointmentDO;
+import com.booking.entity.DO.ProviderProfileDO;
 import com.booking.entity.DO.ServiceProvideDO;
 import com.booking.entity.DO.UserDO;
 import com.booking.entity.DTO.request.CreateAppointmentRequest;
@@ -10,13 +11,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppointmentMapper {
 
-    public AppointmentDO toDO (CreateAppointmentRequest request, ServiceProvideDO serviceDo, UserDO user) {
+    public AppointmentDO toDO (CreateAppointmentRequest request, ServiceProvideDO serviceDo, UserDO user, ProviderProfileDO providerDo) {
         return AppointmentDO.builder()
                 .service(serviceDo)
                 .user(user)
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .remarks(request.getRemarks())
+                .provider(providerDo)
                 .build();
     }
 
@@ -24,6 +26,7 @@ public class AppointmentMapper {
         return AppointmentResponse.builder()
                 .appointmentId(appointmentDO.getId())
                 .serviceId(appointmentDO.getService().getServiceId())
+                .providerId(appointmentDO.getProvider().getProviderId())
                 .userId(appointmentDO.getUser().getUserId())
                 .startTime(appointmentDO.getStartTime())
                 .endTime(appointmentDO.getEndTime())

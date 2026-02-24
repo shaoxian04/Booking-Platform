@@ -2,19 +2,21 @@ package com.booking.entity.DTO.response;
 
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
 @Builder
-public class AppointmentResponse {
-    private UUID appointmentId;
-    private UUID serviceId;
-    private UUID providerId;
-    private UUID userId;
-    private LocalDateTime gmtCreate;
+public class CreateScheduleOverrideResponse {
+
+    private UUID overrideId;
+
     private LocalDateTime startTime;
+
     private LocalDateTime endTime;
-    private String remarks;
+
+    private List<UUID> specificServices;
 }
