@@ -21,4 +21,7 @@ public interface ProviderProfileRepository extends JpaRepository<ProviderProfile
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM ProviderProfileDO p WHERE p.providerId = :id")
     Optional<ProviderProfileDO> findByIdWithLock(@Param("id") UUID id);
+
+    @Query("SELECT p FROM ProviderProfileDO p WHERE LOWER(p.providerName) LIKE LOWER CONCAT('%',:providerName,'%')")
+    List<ProviderProfileDO> findByProviderName(@Param("providerName") String providerName);
 }

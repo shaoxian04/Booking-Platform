@@ -58,6 +58,9 @@ public class ProviderProfileDO {
     @Column(name = "max_concurrency")
     private Integer maxConcurrency;
 
+    @Column(name = "is_completed")
+    private Boolean isCompleted = false;
+
     @CreationTimestamp
     @Column(name = "gmt_create", updatable = false)
     private LocalDateTime gmtCreate;
@@ -65,4 +68,7 @@ public class ProviderProfileDO {
     @UpdateTimestamp
     @Column(name = "gmt_modified")
     private LocalDateTime gmtModified;
+
+    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProviderScheduleDO> schedules;
 }

@@ -31,10 +31,6 @@ public class ReviewDO {
     @JoinColumn(name = "user_id", nullable = false)
     private UserDO user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_id")
-    private ServiceProvideDO service;
-
     @Column(nullable = false)
     private Double rating;
 

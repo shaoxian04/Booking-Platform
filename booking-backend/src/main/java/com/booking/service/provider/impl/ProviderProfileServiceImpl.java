@@ -1,0 +1,158 @@
+package com.booking.service.provider.impl;
+
+import com.booking.common.enums.Role;
+import com.booking.common.exception.AlreadyExistedException;
+import com.booking.common.exception.NotFoundException;
+import com.booking.common.util.AssertUtil;
+import com.booking.entity.DO.ProviderProfileDO;
+import com.booking.entity.DO.ProviderScheduleDO;
+import com.booking.entity.DO.UserDO;
+import com.booking.entity.DTO.request.CreateProviderScheduleRequest;
+import com.booking.entity.DTO.request.ProviderRegistrationRequest;
+import com.booking.entity.DTO.response.CreateProviderScheduleResponse;
+import com.booking.entity.DTO.response.ProviderRegistrationResponse;
+import com.booking.entity.mapper.ProviderMapper;
+import com.booking.entity.mapper.ProviderScheduleMapper;
+import com.booking.repository.ProviderProfileRepository;
+import com.booking.repository.UserRepository;
+import com.booking.service.provider.ProviderProfileService;
+import com.booking.service.storage.SupabaseStorageService;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+@Validated
+public class ProviderProfileServiceImpl implements ProviderProfileService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProviderProfileServiceImpl.class);
+
+    private static final String PROFILE_IMAGE_BUCKET = "provider_profile_image";
+
+    private static final String PROVIDER_IMAGES = "provider_images";
+
+    private final ProviderProfileRepository providerProfileRepository;
+
+    private final UserRepository userRepository;
+
+    private final SupabaseStorageService supabaseStorageService;
+
+    private final ProviderMapper providerMapper;
+
+    private final ProviderScheduleMapper providerScheduleMapper;
+
+    @Override
+    @Transactional
+    public ProviderRegistrationResponse registerProvider(UserDO user, ProviderRegistrationRequest request, MultipartFile profileImage, List<MultipartFile> providerImages) {
+
+        log.info("Provider registration start, username = {}, provider name = {}", user.getUsername(), request.getProviderName());
+
+        AssertUtil.isTrue(!providerProfileRepository.existsByUser_UserId(user.getUserId()), new AlreadyExistedException("The user already registered as provider"));
+
+        AssertUtil.isTrue(!providerProfileRepository.existsByProviderNameIgnoreCase(request.getProviderName()), new AlreadyExistedException("The provider name existed"));
+
+        String profileUrl = uploadProviderProfileImage(profileImage);
+
+        List<String> imageUrls = uploadProviderImages(providerImages);
+
+        ProviderProfileDO providerDO = providerMapper.toDO(user, request, profileUrl, imageUrls);
+
+        ProviderProfileDO newProvider = providerProfileRepository.save(providerDO);
+
+        updateUserRole(user);
+
+        log.info("Provider registered successfully");
+
+        return providerMapper.toResponse(newProvider);
+    }
+
+    @Override
+    @Transactional
+    public ProviderRegistrationResponse createProviderSchedule(List<CreateProviderScheduleRequest> request, UUID userId) {
+
+        log.info("create provider schedule start, user_id = {}", userId);
+
+        ProviderProfileDO providerDo = providerProfileRepository.findByUser_UserId(userId)
+                .orElseThrow(() ->new NotFoundException("The provider is not found"));
+
+        List<ProviderScheduleDO> scheduleDOS = request.stream()
+                .map(s -> providerScheduleMapper.toDO(s, providerDo))
+                .toList();
+
+        providerDo.setSchedules(scheduleDOS);
+
+        ProviderProfileDO updatedProvider = providerProfileRepository.save(providerDo);
+
+        log.info("createProviderSchedule success, userId = {}, providerId = {}, number of schedule = {}", userId, updatedProvider.getProviderId(), scheduleDOS.size());
+
+        return providerMapper.toResponse(updatedProvider);
+    }
+
+    @Override
+    public List<ProviderRegistrationResponse> queryProviderByName(String queryString) {
+
+        log.info("queryProviderByName, name = {}", queryString);
+
+        List<ProviderProfileDO> providerDos = providerProfileRepository.findByProviderName(queryString);
+
+        log.info("queryProviderByName success, number of result = {}", providerDos.size());
+
+        return providerDos.stream()
+                .map(providerMapper::toResponse)
+                .toList();
+
+    }
+
+    @Override
+    public ProviderRegistrationResponse getProviderById(UUID providerId) {
+
+        log.info("getProviderById, providerId = {}", providerId);
+
+        ProviderProfileDO providerDo = providerProfileRepository.findById(providerId)
+                .orElseThrow(() -> new NotFoundException("Provider not found"));
+
+        return providerMapper.toResponse(providerDo);
+    }
+
+    @Override
+    public ProviderRegistrationResponse updateProvider(ProviderRegistrationRequest request, UUID userId, MultipartFile profileImage, List<MultipartFile> providerImages) {
+        return null;
+    }
+
+    @Override
+    public ProviderRegistrationResponse deleteProvider(UUID providerId) {
+        return null;
+    }
+
+
+    private void updateUserRole(UserDO user) {
+        user.setRole(Role.PROVIDER);
+        userRepository.save(user);
+    }
+
+    private String uploadProviderProfileImage(MultipartFile profileImage) {
+        if (profileImage != null && !profileImage.isEmpty()) {
+            return supabaseStorageService.uploadFile(profileImage, PROFILE_IMAGE_BUCKET);
+        }
+        return "";
+    }
+
+    private List<String> uploadProviderImages(List<MultipartFile> providerImages) {
+        return Optional.ofNullable(providerImages)
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(img -> !img.isEmpty())
+                .map(img -> supabaseStorageService.uploadFile(img, PROVIDER_IMAGES))
+                .toList();
+    }
+}

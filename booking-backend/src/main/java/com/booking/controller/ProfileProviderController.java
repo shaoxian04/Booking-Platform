@@ -4,7 +4,7 @@ import com.booking.common.security.CustomUserDetails;
 import com.booking.entity.DO.UserDO;
 import com.booking.entity.DTO.request.ProviderRegistrationRequest;
 import com.booking.entity.DTO.response.ProviderRegistrationResponse;
-import com.booking.service.provider.ProviderRegistrationService;
+import com.booking.service.provider.ProviderProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProfileProviderController {
 
-    private final ProviderRegistrationService providerRegistrationService;
+    private final ProviderProfileService providerRegistrationService;
 
     @PostMapping("/register")
     public ResponseEntity<ProviderRegistrationResponse> registerAsProvider(@Valid @RequestPart("data") ProviderRegistrationRequest request,
