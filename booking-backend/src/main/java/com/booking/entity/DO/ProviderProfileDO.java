@@ -44,9 +44,6 @@ public class ProviderProfileDO {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
-    @Column(name = "available_time", nullable = false)
-    private String availableTime;
-
     private String location;
 
     @Column(name = "average_rating")
@@ -71,4 +68,10 @@ public class ProviderProfileDO {
 
     @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProviderScheduleDO> schedules;
+
+    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ScheduleOverrideDO> overrides;
+
+    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ServiceProvideDO> providedServices;
 }

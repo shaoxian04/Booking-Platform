@@ -2,6 +2,7 @@ package com.booking.entity.DTO.request;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
@@ -12,10 +13,10 @@ public class ProviderRegistrationRequest {
 
     private String providerBio;
 
-    @NotBlank(message = "availableTime required")
-    private String availableTime;
-
     @NotBlank(message = "location required")
     private String location;
+
+    @NotNull(message = "maxConcurrency required")
+    private Integer maxConcurrency;
 
 }

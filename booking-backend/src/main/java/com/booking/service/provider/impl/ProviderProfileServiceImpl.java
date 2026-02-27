@@ -25,10 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -80,7 +78,7 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
     @Transactional
     public ProviderRegistrationResponse createProviderSchedule(List<CreateProviderScheduleRequest> request, UUID userId) {
 
-        log.info("create provider schedule start, user_id = {}", userId);
+        log.info("createProviderSchedule start, user_id = {}", userId);
 
         ProviderProfileDO providerDo = providerProfileRepository.findByUser_UserId(userId)
                 .orElseThrow(() ->new NotFoundException("The provider is not found"));
@@ -89,7 +87,10 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
                 .map(s -> providerScheduleMapper.toDO(s, providerDo))
                 .toList();
 
-        providerDo.setSchedules(scheduleDOS);
+        providerDo.getSchedules().clear();
+        providerDo.getSchedules().addAll(scheduleDOS);
+
+        providerDo.setIsCompleted(true);
 
         ProviderProfileDO updatedProvider = providerProfileRepository.save(providerDo);
 
@@ -125,13 +126,74 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
     }
 
     @Override
+    @Transactional
     public ProviderRegistrationResponse updateProvider(ProviderRegistrationRequest request, UUID userId, MultipartFile profileImage, List<MultipartFile> providerImages) {
-        return null;
+
+        log.info("updateProvider, userId = {}", userId);
+
+        ProviderProfileDO providerDo = providerProfileRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new NotFoundException("Provider not found"));
+
+        if (profileImage != null) {
+            providerDo.setProfileImageUrl(uploadProviderProfileImage(profileImage));
+        }
+
+        if (!providerImages.isEmpty()) {
+            List<String> newProviderImages = uploadProviderImages(providerImages);
+
+            AssertUtil.isTrue(newProviderImages.size() == providerImages.size(), new RuntimeException("some providerImages upload failed"));
+
+            providerDo.getImagePath().clear();
+
+            providerDo.setImagePath(newProviderImages);
+        }
+
+        fillUpdateProvider(request, providerDo);
+
+        ProviderProfileDO updateProviderDo = providerProfileRepository.save(providerDo);
+
+        log.info("update provider successfully, userId = {}, providerId = {}", userId, updateProviderDo.getProviderId());
+
+        return providerMapper.toResponse(updateProviderDo);
     }
 
     @Override
+    @Transactional
     public ProviderRegistrationResponse deleteProvider(UUID providerId) {
-        return null;
+
+        log.info("deleteProvider, providerId = {}", providerId);
+
+        ProviderProfileDO providerDo = providerProfileRepository.findById(providerId)
+                .orElseThrow(() ->new NotFoundException("provider not found"));
+
+        providerProfileRepository.deleteById(providerId);
+
+        return providerMapper.toResponse(providerDo);
+    }
+
+    @Override
+    public ProviderRegistrationResponse updateProviderSchedule(List<CreateProviderScheduleRequest> request, UUID userId) {
+
+        log.info("updateProviderSchedule start, user_id = {}", userId);
+
+        ProviderProfileDO providerDo = providerProfileRepository.findByUser_UserId(userId)
+                .orElseThrow(() ->new NotFoundException("The provider is not found"));
+
+        List<ProviderScheduleDO> newScheduleDos = request.stream()
+                .map(s -> providerScheduleMapper.toDO(s, providerDo))
+                .toList();
+
+        List<ProviderScheduleDO> currentSchedule = Optional.ofNullable(providerDo.getSchedules())
+                .orElseGet(ArrayList::new);
+
+        currentSchedule.clear();
+        currentSchedule.addAll(newScheduleDos);
+
+        providerDo.setSchedules(currentSchedule);
+
+        ProviderProfileDO updateProviderDo = providerProfileRepository.save(providerDo);
+
+        return providerMapper.toResponse(updateProviderDo);
     }
 
 
@@ -154,5 +216,13 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
                 .filter(img -> !img.isEmpty())
                 .map(img -> supabaseStorageService.uploadFile(img, PROVIDER_IMAGES))
                 .toList();
+    }
+
+    private void fillUpdateProvider(ProviderRegistrationRequest request, ProviderProfileDO providerDo) {
+        providerDo.setProviderBio(request.getProviderBio());
+        providerDo.setProviderName(request.getProviderName());
+        providerDo.setLocation(request.getLocation());
+        providerDo.setGmtModified(LocalDateTime.now());
+        providerDo.setMaxConcurrency(request.getMaxConcurrency());
     }
 }

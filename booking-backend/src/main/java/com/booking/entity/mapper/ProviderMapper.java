@@ -15,11 +15,11 @@ public class ProviderMapper {
         return ProviderProfileDO.builder()
                 .providerName(request.getProviderName())
                 .providerBio(request.getProviderBio())
-                .availableTime(request.getAvailableTime())
                 .imagePath(imageUrls)
                 .profileImageUrl(profileUrl)
                 .user(user)
                 .location(request.getLocation())
+                .maxConcurrency(request.getMaxConcurrency())
                 .build();
     }
 
@@ -30,10 +30,11 @@ public class ProviderMapper {
                 .providerBio(providerProfileDO.getProviderBio())
                 .imagePath(providerProfileDO.getImagePath())
                 .profileImageUrl(providerProfileDO.getProfileImageUrl())
-                .availableTime(providerProfileDO.getAvailableTime())
                 .location(providerProfileDO.getLocation())
                 .averageRating(providerProfileDO.getAverageRating())
                 .totalReviews(providerProfileDO.getTotalReviews())
+                .maxConcurrency(providerProfileDO.getMaxConcurrency())
+                .isCompleted(providerProfileDO.getIsCompleted())
                 .build();
     }
 

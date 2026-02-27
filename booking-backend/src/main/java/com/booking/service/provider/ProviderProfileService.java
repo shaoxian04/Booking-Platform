@@ -23,4 +23,7 @@ public interface ProviderProfileService {
     ProviderRegistrationResponse updateProvider(ProviderRegistrationRequest request, UUID userId, MultipartFile profileImage, List<MultipartFile> providerImages);
 
     ProviderRegistrationResponse deleteProvider(UUID providerId);
+
+    ProviderRegistrationResponse updateProviderSchedule(List<CreateProviderScheduleRequest> request, UUID userId);
+
 }
