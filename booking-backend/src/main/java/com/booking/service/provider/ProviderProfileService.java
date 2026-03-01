@@ -3,7 +3,7 @@ package com.booking.service.provider;
 import com.booking.entity.DO.UserDO;
 import com.booking.entity.DTO.request.CreateProviderScheduleRequest;
 import com.booking.entity.DTO.request.ProviderRegistrationRequest;
-import com.booking.entity.DTO.response.CreateProviderScheduleResponse;
+import com.booking.entity.DTO.request.ProviderUpdateRequest;
 import com.booking.entity.DTO.response.ProviderRegistrationResponse;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,10 +20,11 @@ public interface ProviderProfileService {
 
     ProviderRegistrationResponse getProviderById(UUID providerId);
 
-    ProviderRegistrationResponse updateProvider(ProviderRegistrationRequest request, UUID userId, MultipartFile profileImage, List<MultipartFile> providerImages);
+    ProviderRegistrationResponse updateProvider(ProviderUpdateRequest request, UUID userId, MultipartFile profileImage, List<MultipartFile> newImages);
 
     ProviderRegistrationResponse deleteProvider(UUID providerId);
 
     ProviderRegistrationResponse updateProviderSchedule(List<CreateProviderScheduleRequest> request, UUID userId);
 
+    List<ProviderRegistrationResponse> queryByProviderNameOrServiceName(String queryName);
 }

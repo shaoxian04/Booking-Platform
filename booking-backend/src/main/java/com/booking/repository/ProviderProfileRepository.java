@@ -24,4 +24,10 @@ public interface ProviderProfileRepository extends JpaRepository<ProviderProfile
 
     @Query("SELECT p FROM ProviderProfileDO p WHERE LOWER(p.providerName) LIKE CONCAT('%', LOWER(:providerName), '%')")
     List<ProviderProfileDO> findByProviderName(@Param("providerName") String providerName);
+
+    @Query("SELECT DISTINCT p FROM ProviderProfileDO p " +
+            "LEFT JOIN p.providedServices s " +
+            "WHERE LOWER(p.providerName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR (LOWER(s.serviceName) LIKE LOWER(CONCAT('%', :keyword, '%')) AND s.published = TRUE)")
+    List<ProviderProfileDO> findByProviderOrService(@Param("keyword") String keyword);
 }

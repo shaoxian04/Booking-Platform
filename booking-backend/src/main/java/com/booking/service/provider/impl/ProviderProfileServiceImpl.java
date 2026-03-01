@@ -9,7 +9,7 @@ import com.booking.entity.DO.ProviderScheduleDO;
 import com.booking.entity.DO.UserDO;
 import com.booking.entity.DTO.request.CreateProviderScheduleRequest;
 import com.booking.entity.DTO.request.ProviderRegistrationRequest;
-import com.booking.entity.DTO.response.CreateProviderScheduleResponse;
+import com.booking.entity.DTO.request.ProviderUpdateRequest;
 import com.booking.entity.DTO.response.ProviderRegistrationResponse;
 import com.booking.entity.mapper.ProviderMapper;
 import com.booking.entity.mapper.ProviderScheduleMapper;
@@ -127,7 +127,7 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
 
     @Override
     @Transactional
-    public ProviderRegistrationResponse updateProvider(ProviderRegistrationRequest request, UUID userId, MultipartFile profileImage, List<MultipartFile> providerImages) {
+    public ProviderRegistrationResponse updateProvider(ProviderUpdateRequest request, UUID userId, MultipartFile profileImage, List<MultipartFile> newImages) {
 
         log.info("updateProvider, userId = {}", userId);
 
@@ -138,15 +138,26 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
             providerDo.setProfileImageUrl(uploadProviderProfileImage(profileImage));
         }
 
-        if (!providerImages.isEmpty()) {
-            List<String> newProviderImages = uploadProviderImages(providerImages);
+        List<String> finalImagesPath = new ArrayList<>();
 
-            AssertUtil.isTrue(newProviderImages.size() == providerImages.size(), new RuntimeException("some providerImages upload failed"));
+        List<String> existingImages = request.getExistingImages();
 
-            providerDo.getImagePath().clear();
-
-            providerDo.setImagePath(newProviderImages);
+        if(!existingImages.isEmpty()) {
+            finalImagesPath.addAll(existingImages);
         }
+
+        if (newImages != null && !newImages.isEmpty()) {
+            List<String> newProviderImages = uploadProviderImages(newImages);
+
+            log.info("newImages in request = {}, newImages uploaded = {}", newImages.size(), newProviderImages.size());
+
+            AssertUtil.isTrue(newProviderImages.size() == newImages.size(), new RuntimeException("some providerImages upload failed"));
+
+            finalImagesPath.addAll(newProviderImages);
+        }
+
+        providerDo.getImagePath().clear();
+        providerDo.setImagePath(finalImagesPath);
 
         fillUpdateProvider(request, providerDo);
 
@@ -194,6 +205,19 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
         ProviderProfileDO updateProviderDo = providerProfileRepository.save(providerDo);
 
         return providerMapper.toResponse(updateProviderDo);
+    }
+
+    @Override
+    public List<ProviderRegistrationResponse> queryByProviderNameOrServiceName(String queryName) {
+        log.info("queryByProviderNameOrServiceName, queryName = {}", queryName);
+
+        List<ProviderProfileDO> providerDos = providerProfileRepository.findByProviderOrService(queryName);
+
+        log.info("queryByProviderNameOrServiceName, result size = {}", providerDos.size());
+
+        return providerDos.stream()
+                .map(providerMapper::toResponse)
+                .toList();
     }
 
 

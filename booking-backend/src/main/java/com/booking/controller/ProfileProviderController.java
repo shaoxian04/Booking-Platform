@@ -4,6 +4,7 @@ import com.booking.common.security.CustomUserDetails;
 import com.booking.entity.DO.UserDO;
 import com.booking.entity.DTO.request.CreateProviderScheduleRequest;
 import com.booking.entity.DTO.request.ProviderRegistrationRequest;
+import com.booking.entity.DTO.request.ProviderUpdateRequest;
 import com.booking.entity.DTO.response.ProviderRegistrationResponse;
 import com.booking.service.provider.ProviderProfileService;
 import jakarta.validation.Valid;
@@ -44,7 +45,7 @@ public class ProfileProviderController {
 
     @PutMapping("/")
     @PreAuthorize("hasAuthority('PROVIDER')")
-    public ResponseEntity<ProviderRegistrationResponse> updateProvider(@Valid @RequestPart("data") ProviderRegistrationRequest request,
+    public ResponseEntity<ProviderRegistrationResponse> updateProvider(@Valid @RequestPart("data") ProviderUpdateRequest request,
                                                                        @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
                                                                        @RequestPart(value = "providerImages", required = false) List<MultipartFile> providerImages,
                                                                        Authentication authentication) {
@@ -70,11 +71,11 @@ public class ProfileProviderController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<ProviderRegistrationResponse>> queryProviderByName(@RequestParam String providerName) {
+    public ResponseEntity<List<ProviderRegistrationResponse>> queryByProviderNameOrServiceName(@RequestParam String queryName) {
 
-        log.info("query provider by name, providerName = {}", providerName);
+        log.info("query provider by name, providerName = {}", queryName);
 
-        List<ProviderRegistrationResponse> responses = providerService.queryProviderByName(providerName);
+        List<ProviderRegistrationResponse> responses = providerService.queryByProviderNameOrServiceName(queryName);
 
         return ResponseEntity.ok(responses);
     }
@@ -105,4 +106,5 @@ public class ProfileProviderController {
 
         return ResponseEntity.ok(response);
     }
+
 }
