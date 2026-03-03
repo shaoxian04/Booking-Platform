@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -46,5 +47,15 @@ public class AppointmentDO {
     @CreationTimestamp
     @Column(name = "gmt_create", updatable = false)
     private LocalDateTime gmtCreate;
+
+    @UpdateTimestamp
+    @Column(name = "gmt_modified")
+    private LocalDateTime gmtModified;
+
+    @Column(name = "is_completed")
+    private Boolean isCompleted = false;
+
+    @Column(name = "is_accepted")
+    private Boolean isAccepted = false;
 
 }

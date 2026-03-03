@@ -49,4 +49,22 @@ public interface AppointmentRepository extends JpaRepository<AppointmentDO, UUID
             @Param("endTime") LocalDateTime endTime
     );
 
+    List<AppointmentDO> findByProvider_User_UserIdAndIsAcceptedFalseAndIsCompletedFalse(UUID userId);
+
+    List<AppointmentDO> findByProvider_User_UserIdAndIsAcceptedTrueAndIsCompletedFalse(UUID userId);
+
+    List<AppointmentDO> findByProvider_User_UserIdAndIsCompletedTrue(UUID userId);
+
+    List<AppointmentDO> findByProvider_User_UserIdAndIsCompletedFalse(UUID userId);
+
+    List<AppointmentDO> findByUser_UserIdAndIsAcceptedFalseAndIsCompletedFalse(UUID userId);
+
+    List<AppointmentDO> findByUser_UserIdAndIsAcceptedTrueAndIsCompletedFalse(UUID userId);
+
+    List<AppointmentDO> findByUser_UserIdAndIsCompletedTrue(UUID userId);
+
+    List<AppointmentDO> findByUser_UserIdAndIsCompletedFalse(UUID userId);
+
+
+
 }

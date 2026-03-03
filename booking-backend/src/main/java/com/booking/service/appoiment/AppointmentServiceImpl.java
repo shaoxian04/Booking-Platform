@@ -53,6 +53,17 @@ public class AppointmentServiceImpl implements AppointmentService {
         ProviderProfileDO providerDo = providerProfileRepository.findByIdWithLock(serviceDo.getProvider().getProviderId())
                 .orElseThrow(() -> new NotFoundException("no provider found for the service in appointment request"));
 
+        // Validate that the appointment is within the provider's scheduled working hours
+        boolean withinSchedule = providerDo.getSchedules().stream()
+                .anyMatch(schedule -> {
+                    boolean dayMatches = schedule.getDayOfWeek().name().equals(request.getStartTime().getDayOfWeek().name());
+                    boolean startsAfter = !request.getStartTime().toLocalTime().isBefore(schedule.getStartTime());
+                    boolean endsBefore = !request.getEndTime().toLocalTime().isAfter(schedule.getEndTime());
+                    return dayMatches && startsAfter && endsBefore;
+                });
+
+        AssertUtil.isTrue(withinSchedule, new TimeSlotUnavailableException("The provider is not working during the requested time"));
+
         AssertUtil.isTrue(scheduleOverrideRepository.findOverlappingOverridesByService(providerDo.getProviderId(), serviceDo.getServiceId(), request.getStartTime(), request.getEndTime()).isEmpty(),
                 new TimeSlotUnavailableException("The time slot is unavailable for provider"));
 
@@ -62,6 +73,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         AppointmentDO newDo = appointmentRepository.save(appointmentDO);
 
+        log.info("create appointment service completed, appointment id = {}", newDo.getId());
         return appointmentMapper.toResponse(newDo);
     }
 
@@ -70,9 +82,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentResponse deleteAppointment(UUID appointmentId, UserDO user) {
 
         log.info("delete appointment service start, user id = {}, appointment id = {}", user.getUserId(), appointmentId);
-
-        List<AppointmentDO> list = appointmentRepository.findAll();
-        log.info("list = {}",list);
 
         AppointmentDO appointmentDO = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new NotFoundException("The appointment not found in delete appointment service"));
@@ -84,7 +93,150 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         appointmentRepository.delete(appointmentDO);
 
+        log.info("delete appointment service completed, appointment id = {}", appointmentId);
         return appointmentMapper.toResponse(appointmentDO);
+    }
+
+    @Override
+    public List<AppointmentResponse> queryUnacceptAppointmentByProviderId(UUID userId) {
+
+        log.info("queryUnacceptAppointmentByProviderId service start, userId = {}", userId);
+
+        List<AppointmentDO> appointmentDOS = appointmentRepository.findByProvider_User_UserIdAndIsAcceptedFalseAndIsCompletedFalse(userId);
+
+        log.info("queryUnacceptAppointmentByProviderId service completed, result size = {}", appointmentDOS.size());
+        return appointmentDOS.stream()
+                .map(appointmentMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<AppointmentResponse> queryAcceptedAppointmentByProviderId(UUID userId) {
+
+        log.info("queryAcceptedAppointmentByProviderId service start, userId = {}", userId);
+
+        List<AppointmentDO> appointmentDOS = appointmentRepository.findByProvider_User_UserIdAndIsAcceptedTrueAndIsCompletedFalse(userId);
+
+        log.info("queryAcceptedAppointmentByProviderId service completed, result size = {}", appointmentDOS.size());
+
+        return appointmentDOS.stream()
+                .map(appointmentMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<AppointmentResponse> queryCompletedAppointmentByProviderId(UUID userId) {
+
+        log.info("queryCompletedAppointmentByProviderId service start, userId = {}", userId);
+
+        List<AppointmentDO> appointmentDOS = appointmentRepository.findByProvider_User_UserIdAndIsCompletedTrue(userId);
+
+        log.info("queryCompletedAppointmentByProviderId service completed, result size = {}", appointmentDOS.size());
+
+        return appointmentDOS.stream()
+                .map(appointmentMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<AppointmentResponse> queryNotCompleteAppointmentByProviderId(UUID userId) {
+        log.info("queryNotCompleteAppointmentByProviderId service start, userId = {}", userId);
+
+        List<AppointmentDO> appointmentDOS = appointmentRepository.findByProvider_User_UserIdAndIsCompletedFalse(userId);
+
+        log.info("queryNotCompleteAppointmentByProviderId service completed, result size = {}", appointmentDOS.size());
+
+        return appointmentDOS.stream()
+                .map(appointmentMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<AppointmentResponse> queryUnacceptAppointmentByUserId(UUID userId) {
+        log.info("queryUnacceptAppointmentByUserId service start, userId = {}", userId);
+
+        List<AppointmentDO> appointmentDOS = appointmentRepository.findByUser_UserIdAndIsAcceptedFalseAndIsCompletedFalse(userId);
+
+        log.info("queryUnacceptAppointmentByUserId service completed, result size = {}", appointmentDOS.size());
+
+        return appointmentDOS.stream()
+                .map(appointmentMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<AppointmentResponse> queryAcceptedAppointmentByUserId(UUID userId) {
+        log.info("queryAcceptedAppointmentByUserId service start, userId = {}", userId);
+
+        List<AppointmentDO> appointmentDOS = appointmentRepository.findByUser_UserIdAndIsAcceptedTrueAndIsCompletedFalse(userId);
+
+        log.info("queryAcceptedAppointmentByUserId service completed, result size = {}", appointmentDOS.size());
+
+        return appointmentDOS.stream()
+                .map(appointmentMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<AppointmentResponse> queryCompletedAppointmentByUserId(UUID userId) {
+        log.info("queryCompletedAppointmentByUserId service start, userId = {}", userId);
+
+        List<AppointmentDO> appointmentDOS = appointmentRepository.findByUser_UserIdAndIsCompletedTrue(userId);
+
+        log.info("queryCompletedAppointmentByUserId service completed, result size = {}", appointmentDOS.size());
+
+        return appointmentDOS.stream()
+                .map(appointmentMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<AppointmentResponse> queryNotCompletedAppointmentByUserId(UUID userId) {
+
+        log.info("queryNotCompletedAppointmentByUserId service start, userId = {}", userId);
+
+        List<AppointmentDO> appointmentDOS = appointmentRepository.findByUser_UserIdAndIsCompletedFalse(userId);
+
+        log.info("queryNotCompletedAppointmentByUserId service completed, result size = {}", appointmentDOS.size());
+
+        return appointmentDOS.stream()
+                .map(appointmentMapper::toResponse)
+                .toList();
+    }
+
+
+    @Override
+    @Transactional
+    public AppointmentResponse acceptAppointment(UUID appointmentId) {
+        log.info("acceptAppointment service start, appointmentId = {}", appointmentId);
+
+        AppointmentDO appointmentDO = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new NotFoundException("Appointment not found"));
+
+        appointmentDO.setIsAccepted(true);
+
+        AppointmentDO savedDo = appointmentRepository.save(appointmentDO);
+
+        log.info("acceptAppointment service completed, appointmentId = {}", appointmentId);
+
+        return appointmentMapper.toResponse(savedDo);
+    }
+
+    @Override
+    @Transactional
+    public AppointmentResponse completeAppointment(UUID appointmentId) {
+        log.info("completeAppointment service start, appointmentId = {}", appointmentId);
+
+        AppointmentDO appointmentDO = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new NotFoundException("Appointment not found"));
+
+        appointmentDO.setIsCompleted(true);
+
+        AppointmentDO savedDo = appointmentRepository.save(appointmentDO);
+
+        log.info("completeAppointment service completed, appointmentId = {}", appointmentId);
+
+        return appointmentMapper.toResponse(savedDo);
     }
 
 }
