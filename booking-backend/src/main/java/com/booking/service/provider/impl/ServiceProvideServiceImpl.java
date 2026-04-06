@@ -77,6 +77,21 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
     }
 
     @Override
+    public List<CreateServiceResponse> getServicesByProviderId(UUID providerId) {
+
+        log.info("getServicesByProviderId, providerId = {}", providerId);
+
+        providerProfileRepository.findById(providerId)
+                .orElseThrow(() -> new NotFoundException("Provider not found"));
+
+        List<ServiceProvideDO> serviceProvideDOS = serviceProvideRepository.findByProviderId(providerId);
+
+        return serviceProvideDOS.stream()
+                .map(serviceProvideMapper::toResponse)
+                .toList();
+    }
+
+    @Override
     public CreateServiceResponse disableService(UUID serviceId) {
 
         log.info("disableService, serviceId = {}", serviceId);
