@@ -161,11 +161,6 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
     }
 
     private void validateCategories(List<String> categories) {
-        if (categories == null) {
-            return;
-        }
-        for (String category : categories) {
-            AssertUtil.isTrue(Category.isValid(category), new IllegalArgumentException("Invalid category: " + category));
-        }
+        Category.validateList(categories);
     }
 }

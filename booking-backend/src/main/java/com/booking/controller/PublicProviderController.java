@@ -36,6 +36,7 @@ public class PublicProviderController {
                         .duration(s.getDuration())
                         .price(s.getPrice())
                         .imagePath(s.getImagePath())
+                        .categories(s.getCategories())
                         .gmtCreate(s.getGmtCreate())
                         .remarks(s.getRemarks())
                         .build())

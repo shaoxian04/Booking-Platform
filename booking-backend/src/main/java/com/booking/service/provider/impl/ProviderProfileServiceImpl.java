@@ -242,8 +242,10 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
 
 
     private void updateUserRole(UserDO user) {
-        user.setRole(Role.PROVIDER);
-        userRepository.save(user);
+        UserDO managedUser = userRepository.findById(user.getUserId())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        managedUser.setRole(Role.PROVIDER);
+        userRepository.save(managedUser);
     }
 
     private String uploadProviderProfileImage(MultipartFile profileImage) {
@@ -272,11 +274,6 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
     }
 
     private void validateCategories(List<String> categories) {
-        if (categories == null) {
-            return;
-        }
-        for (String category : categories) {
-            AssertUtil.isTrue(Category.isValid(category), new IllegalArgumentException("Invalid category: " + category));
-        }
+        Category.validateList(categories);
     }
 }
