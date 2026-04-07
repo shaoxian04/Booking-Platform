@@ -41,6 +41,10 @@ public class ProviderProfileDO {
     @Column(name = "image_path", columnDefinition = "text[]")
     private List<String> imagePath;
 
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "categories", columnDefinition = "text[]")
+    private List<String> categories = new java.util.ArrayList<>();
+
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 

@@ -6,6 +6,7 @@ import com.booking.entity.DTO.request.CreateServiceRequest;
 import com.booking.entity.DTO.response.CreateServiceResponse;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +22,7 @@ public class ServiceProvideMapper {
                 .serviceName(request.getServiceName())
                 .imagePath(images)
                 .remarks(request.getRemarks())
+                .categories(request.getCategories() != null ? new ArrayList<>(request.getCategories()) : new ArrayList<>())
                 .build();
     }
 
@@ -31,6 +33,7 @@ public class ServiceProvideMapper {
                 .duration(serviceDO.getDuration())
                 .price(serviceDO.getPrice())
                 .imagePath(serviceDO.getImagePath())
+                .categories(serviceDO.getCategories() != null ? new ArrayList<>(serviceDO.getCategories()) : new ArrayList<>())
                 .serviceBio(serviceDO.getServiceBio())
                 .remarks(serviceDO.getRemarks())
                 .gmtCreate(serviceDO.getGmtCreate())

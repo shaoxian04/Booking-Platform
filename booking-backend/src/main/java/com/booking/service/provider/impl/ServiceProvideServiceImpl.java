@@ -1,5 +1,6 @@
 package com.booking.service.provider.impl;
 
+import com.booking.common.enums.Category;
 import com.booking.common.exception.AlreadyExistedException;
 import com.booking.common.exception.NotFoundException;
 import com.booking.common.util.AssertUtil;
@@ -41,6 +42,8 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
     public CreateServiceResponse createService(CreateServiceRequest request, List<MultipartFile> images, UserDO user) {
 
         log.info("create service process start, username = {}", user.getUsername());
+
+        validateCategories(request.getCategories());
 
         ProviderProfileDO provider = providerProfileRepository.findByUser_UserId(user.getUserId())
                 .orElseThrow(() -> new NotFoundException("Provider not found in DB"));
@@ -114,6 +117,8 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
 
         log.info("updateService, serviceId = {}, serviceName= {}", serviceId, request.getServiceName());
 
+        validateCategories(request.getCategories());
+
         ServiceProvideDO serviceDo = serviceProvideRepository.findById(serviceId)
                 .orElseThrow(() -> new NotFoundException("Service not found"));
 
@@ -152,5 +157,15 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
         serviceDo.setServiceBio(request.getServiceBio());
         serviceDo.setDuration(request.getDuration());
         serviceDo.setPrice(request.getPrice());
+        serviceDo.setCategories(request.getCategories() != null ? new ArrayList<>(request.getCategories()) : new ArrayList<>());
+    }
+
+    private void validateCategories(List<String> categories) {
+        if (categories == null) {
+            return;
+        }
+        for (String category : categories) {
+            AssertUtil.isTrue(Category.isValid(category), new IllegalArgumentException("Invalid category: " + category));
+        }
     }
 }

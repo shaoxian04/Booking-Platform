@@ -27,4 +27,6 @@ public interface ProviderProfileService {
     ProviderRegistrationResponse updateProviderSchedule(List<CreateProviderScheduleRequest> request, UUID userId);
 
     List<ProviderRegistrationResponse> queryByProviderNameOrServiceName(String queryName);
+
+    List<ProviderRegistrationResponse> queryByCategory(String category);
 }

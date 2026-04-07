@@ -1,5 +1,6 @@
 package com.booking.service.provider.impl;
 
+import com.booking.common.enums.Category;
 import com.booking.common.enums.Role;
 import com.booking.common.exception.AlreadyExistedException;
 import com.booking.common.exception.NotFoundException;
@@ -54,6 +55,8 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
     public ProviderRegistrationResponse registerProvider(UserDO user, ProviderRegistrationRequest request, MultipartFile profileImage, List<MultipartFile> providerImages) {
 
         log.info("Provider registration start, username = {}, provider name = {}", user.getUsername(), request.getProviderName());
+
+        validateCategories(request.getCategories());
 
         AssertUtil.isTrue(!providerProfileRepository.existsByUser_UserId(user.getUserId()), new AlreadyExistedException("The user already registered as provider"));
 
@@ -130,6 +133,8 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
     public ProviderRegistrationResponse updateProvider(ProviderUpdateRequest request, UUID userId, MultipartFile profileImage, List<MultipartFile> newImages) {
 
         log.info("updateProvider, userId = {}", userId);
+
+        validateCategories(request.getCategories());
 
         ProviderProfileDO providerDo = providerProfileRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new NotFoundException("Provider not found"));
@@ -220,6 +225,21 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
                 .toList();
     }
 
+    @Override
+    public List<ProviderRegistrationResponse> queryByCategory(String category) {
+        log.info("queryByCategory, category = {}", category);
+
+        AssertUtil.isTrue(Category.isValid(category), new IllegalArgumentException("Invalid category: " + category));
+
+        List<ProviderProfileDO> providerDos = providerProfileRepository.findByCategory(category.toUpperCase());
+
+        log.info("queryByCategory, result size = {}", providerDos.size());
+
+        return providerDos.stream()
+                .map(providerMapper::toResponse)
+                .toList();
+    }
+
 
     private void updateUserRole(UserDO user) {
         user.setRole(Role.PROVIDER);
@@ -248,5 +268,15 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
         providerDo.setLocation(request.getLocation());
         providerDo.setGmtModified(LocalDateTime.now());
         providerDo.setMaxConcurrency(request.getMaxConcurrency());
+        providerDo.setCategories(request.getCategories() != null ? new ArrayList<>(request.getCategories()) : new ArrayList<>());
+    }
+
+    private void validateCategories(List<String> categories) {
+        if (categories == null) {
+            return;
+        }
+        for (String category : categories) {
+            AssertUtil.isTrue(Category.isValid(category), new IllegalArgumentException("Invalid category: " + category));
+        }
     }
 }

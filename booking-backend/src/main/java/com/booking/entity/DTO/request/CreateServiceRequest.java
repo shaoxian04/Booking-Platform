@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,5 +27,7 @@ public class CreateServiceRequest {
     @NotNull(message = "Price of service required")
     @Min(value = 0, message = "Price must greater or equal to 0")
     private BigDecimal price;
+
+    private List<String> categories = new ArrayList<>();
 
 }

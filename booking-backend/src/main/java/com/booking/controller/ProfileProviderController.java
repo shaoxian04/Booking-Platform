@@ -28,6 +28,7 @@ public class ProfileProviderController {
     private final ProviderProfileService providerService;
 
     @PostMapping("/register")
+    @PreAuthorize("hasAuthority('VIEWER')")
     public ResponseEntity<ProviderRegistrationResponse> registerAsProvider(@Valid @RequestPart("data") ProviderRegistrationRequest request,
                                                                            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
                                                                            @RequestPart(value = "shopImages", required = false) List<MultipartFile> providerImages,

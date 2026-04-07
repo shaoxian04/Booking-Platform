@@ -15,6 +15,7 @@ public class ProviderRegistrationResponse {
     private String providerBio;
     private String profileImageUrl;
     private List<String> imagePath;
+    private List<String> categories;
     private String location;
     private Double averageRating;
     private Integer totalReviews;

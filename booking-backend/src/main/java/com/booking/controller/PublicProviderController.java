@@ -26,7 +26,20 @@ public class PublicProviderController {
 
         log.info("public getServicesByProvider, providerId = {}", providerId);
 
-        List<CreateServiceResponse> services = serviceProvideService.getServicesByProviderId(providerId);
+        List<CreateServiceResponse> services = serviceProvideService.getServicesByProviderId(providerId)
+                .stream()
+                .map(s -> CreateServiceResponse.builder()
+                        .serviceId(s.getServiceId())
+                        .providerId(s.getProviderId())
+                        .serviceName(s.getServiceName())
+                        .serviceBio(s.getServiceBio())
+                        .duration(s.getDuration())
+                        .price(s.getPrice())
+                        .imagePath(s.getImagePath())
+                        .gmtCreate(s.getGmtCreate())
+                        .remarks(s.getRemarks())
+                        .build())
+                .toList();
 
         return ResponseEntity.ok(services);
     }
@@ -47,6 +60,16 @@ public class PublicProviderController {
         log.info("public searchProviders, queryName = {}", queryName);
 
         List<ProviderRegistrationResponse> responses = providerProfileService.queryByProviderNameOrServiceName(queryName);
+
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/category")
+    public ResponseEntity<List<ProviderRegistrationResponse>> getProvidersByCategory(@RequestParam String category) {
+
+        log.info("public getProvidersByCategory, category = {}", category);
+
+        List<ProviderRegistrationResponse> responses = providerProfileService.queryByCategory(category);
 
         return ResponseEntity.ok(responses);
     }
