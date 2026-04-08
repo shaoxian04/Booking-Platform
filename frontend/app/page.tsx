@@ -4,18 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { ProviderCard } from "@/components/provider-card";
+import { CategoryFilterBar } from "@/components/category-filter-bar";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
-import type { ProviderResponse } from "@/lib/types";
-
-const CATEGORIES = [
-  { icon: "🧖", label: "Beauty & Wellness" },
-  { icon: "🏋️", label: "Fitness" },
-  { icon: "🩺", label: "Health" },
-  { icon: "🐾", label: "Pet Care" },
-  { icon: "🏠", label: "Home Services" },
-];
+import type { Category, ProviderResponse } from "@/lib/types";
 
 const HOW_IT_WORKS = [
   {
@@ -53,20 +46,50 @@ const HOW_IT_WORKS = [
 export default function HomePage() {
   const { user } = useAuth();
   const [query, setQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [providers, setProviders] = useState<ProviderResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
+
+  async function fetchByCategory(category: Category) {
+    setError("");
+    setIsLoading(true);
+    try {
+      const results = await api.getProvidersByCategory(category);
+      const filtered = query.trim()
+        ? results.filter((p) =>
+            p.providerName.toLowerCase().includes(query.trim().toLowerCase())
+          )
+        : results;
+      setProviders(filtered);
+      setHasSearched(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load providers");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   async function handleSearch(searchQuery?: string) {
     const q = searchQuery ?? query;
     setError("");
     setIsLoading(true);
     try {
-      const results = user
-        ? await api.searchProviders(q)
-        : await api.searchProvidersPublic(q);
-      setProviders(results);
+      if (selectedCategory) {
+        const results = await api.getProvidersByCategory(selectedCategory);
+        const filtered = q.trim()
+          ? results.filter((p) =>
+              p.providerName.toLowerCase().includes(q.trim().toLowerCase())
+            )
+          : results;
+        setProviders(filtered);
+      } else {
+        const results = user
+          ? await api.searchProviders(q)
+          : await api.searchProvidersPublic(q);
+        setProviders(results);
+      }
       setHasSearched(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed");
@@ -75,13 +98,34 @@ export default function HomePage() {
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") handleSearch();
+  async function handleCategorySelect(cat: Category | null) {
+    setSelectedCategory(cat);
+    if (cat === null) {
+      if (query.trim()) {
+        setError("");
+        setIsLoading(true);
+        try {
+          const results = user
+            ? await api.searchProviders(query)
+            : await api.searchProvidersPublic(query);
+          setProviders(results);
+          setHasSearched(true);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Search failed");
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setProviders([]);
+        setHasSearched(false);
+      }
+    } else {
+      await fetchByCategory(cat);
+    }
   }
 
-  function handleCategory(label: string) {
-    setQuery(label);
-    handleSearch(label);
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") handleSearch();
   }
 
   return (
@@ -127,20 +171,13 @@ export default function HomePage() {
               Search
             </button>
           </div>
+        </div>
+      </div>
 
-          {/* Category chips */}
-          <div className="flex flex-wrap gap-2 justify-center">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.label}
-                onClick={() => handleCategory(cat.label)}
-                className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-sm font-medium px-4 py-2 rounded-full transition-all border border-white/20"
-              >
-                <span>{cat.icon}</span>
-                {cat.label}
-              </button>
-            ))}
-          </div>
+      {/* Category filter bar */}
+      <div className="bg-white border-b border-slate-100 px-4 py-3">
+        <div className="max-w-6xl mx-auto">
+          <CategoryFilterBar selected={selectedCategory} onSelect={handleCategorySelect} />
         </div>
       </div>
 
@@ -160,7 +197,7 @@ export default function HomePage() {
                 Sign up free
               </Link>
               <Link
-                href="/register?role=PROVIDER"
+                href="/become-provider"
                 className="px-5 py-2.5 rounded-xl text-sm font-semibold border border-slate-200 text-slate-700 hover:border-violet-300 hover:text-violet-700 transition-all"
               >
                 I&apos;m a provider
