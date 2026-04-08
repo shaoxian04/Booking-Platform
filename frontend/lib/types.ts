@@ -51,7 +51,7 @@ export interface UserProfileUpdateRequest {
 export interface ProviderResponse {
   providerId: string;
   providerName: string;
-  providerBio: string;
+  providerBio: string | null;
   profileImageUrl: string | null;
   imagePath: string[];
   location: string;
@@ -60,6 +60,7 @@ export interface ProviderResponse {
   maxConcurrency: number;
   isCompleted: boolean;
   categories?: Category[];
+  availableTime?: string | null;
 }
 
 export interface ServiceResponse {
@@ -100,6 +101,7 @@ export interface CreateServiceRequest {
   duration: number;
   price: number;
   remarks?: string;
+  categories?: Category[];
 }
 
 export type AppointmentStatus = "unaccepted" | "accepted" | "completed" | "not-completed";

@@ -66,7 +66,7 @@ export async function becomeProvider(
   formData.append("data", new Blob([JSON.stringify(data)], { type: "application/json" }));
   if (profileImage) formData.append("profileImage", profileImage);
   if (shopImages) {
-    shopImages.forEach((img) => formData.append("providerImages", img));
+    shopImages.forEach((img) => formData.append("shopImages", img));
   }
   const res = await fetch(`${API_BASE}/provider/register`, {
     method: "POST",
@@ -112,6 +112,36 @@ export async function searchProviders(queryName: string): Promise<ProviderRespon
 export async function getProviderById(providerId: string): Promise<ProviderResponse> {
   const res = await fetch(`${API_BASE}/provider/${providerId}`, {
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+  });
+  return handleResponse<ProviderResponse>(res);
+}
+
+export async function getMyProviderProfile(): Promise<ProviderResponse> {
+  if (typeof window === "undefined") throw new Error("Not available server-side");
+  const stored = localStorage.getItem("user");
+  if (!stored) throw new Error("Not authenticated");
+  const user = JSON.parse(stored) as { id: string };
+  const res = await fetch(`${API_BASE}/provider/${user.id}`, {
+    headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+  });
+  return handleResponse<ProviderResponse>(res);
+}
+
+export async function updateProviderProfile(
+  data: object,
+  profileImage?: File,
+  providerImages?: File[],
+): Promise<ProviderResponse> {
+  const formData = new FormData();
+  formData.append("data", new Blob([JSON.stringify(data)], { type: "application/json" }));
+  if (profileImage) formData.append("profileImage", profileImage);
+  if (providerImages) {
+    providerImages.forEach((img) => formData.append("providerImages", img));
+  }
+  const res = await fetch(`${API_BASE}/provider`, {
+    method: "PUT",
+    headers: { ...getAuthHeaders() },
+    body: formData,
   });
   return handleResponse<ProviderResponse>(res);
 }

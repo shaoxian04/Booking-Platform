@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { CategoryMultiSelect } from "@/components/category-multiselect";
+import { CategoryPills } from "@/components/category-pills";
 import * as api from "@/lib/api";
-import type { ServiceResponse } from "@/lib/types";
+import type { Category, ServiceResponse } from "@/lib/types";
 
 function CreateServiceModal({
   onClose,
@@ -17,6 +19,7 @@ function CreateServiceModal({
   const [duration, setDuration] = useState(60);
   const [price, setPrice] = useState("");
   const [remarks, setRemarks] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,6 +39,7 @@ function CreateServiceModal({
         duration,
         price: priceNum,
         remarks: remarks || undefined,
+        categories: categories.length > 0 ? categories : undefined,
       });
       onCreated(created);
     } catch (err) {
@@ -122,6 +126,12 @@ function CreateServiceModal({
               placeholder="Any additional notes..."
               className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              Categories <span className="text-slate-400 font-normal">(optional)</span>
+            </label>
+            <CategoryMultiSelect value={categories} onChange={setCategories} />
           </div>
 
           {error && (
@@ -279,6 +289,9 @@ export default function DashboardServicesPage() {
                   </span>
                 )}
               </div>
+              {service.categories && service.categories.length > 0 && (
+                <CategoryPills categories={service.categories} />
+              )}
 
               <div className="flex justify-end pt-1">
                 <button

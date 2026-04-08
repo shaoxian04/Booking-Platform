@@ -17,6 +17,15 @@ const SIDEBAR_LINKS = [
     ),
   },
   {
+    href: "/dashboard/profile",
+    label: "My Profile",
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A9 9 0 0112 15a9 9 0 016.879 2.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
+  {
     href: "/dashboard/services",
     label: "Services",
     icon: (
