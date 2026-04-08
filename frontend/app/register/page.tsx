@@ -1,31 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import * as api from "@/lib/api";
 import { LoadingSpinner } from "@/components/loading-spinner";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phoneNo, setPhoneNo] = useState("");
   const [profileImage, setProfileImage] = useState<File | null>(null);
-  const [role, setRole] = useState<"VIEWER" | "PROVIDER">("VIEWER");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const auth = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (auth.isAuthenticated) router.replace("/");
-    const roleParam = searchParams.get("role");
-    if (roleParam === "PROVIDER") setRole("PROVIDER");
-  }, [auth.isAuthenticated, router, searchParams]);
+  }, [auth.isAuthenticated, router]);
 
   function validate(): string | null {
     if (username.length < 3 || username.length > 20) return "Username must be 3–20 characters.";
@@ -42,7 +38,7 @@ export default function RegisterPage() {
     if (validationError) { setError(validationError); return; }
     setIsLoading(true);
     try {
-      await api.register({ username, email, password, phoneNo, role }, profileImage ?? undefined);
+      await api.register({ username, email, password, phoneNo }, profileImage ?? undefined);
       router.push("/login?registered=1");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
@@ -65,9 +61,9 @@ export default function RegisterPage() {
         </div>
         <div>
           <h2 className="text-white text-4xl font-bold leading-tight mb-4">
-            Your bookings,<br />beautifully managed.
+            Create your<br />customer account.
           </h2>
-          <p className="text-violet-200 text-lg">Join thousands of users who trust Bookify for their appointments.</p>
+          <p className="text-violet-200 text-lg">Book services from top providers in minutes — it&apos;s completely free.</p>
           <div className="mt-10 grid grid-cols-2 gap-6">
             {[
               { value: "500+", label: "Service Providers" },
@@ -100,32 +96,6 @@ export default function RegisterPage() {
 
           <h1 className="text-3xl font-bold text-slate-900 mb-1">Create your account</h1>
           <p className="text-slate-500 mb-6">Start booking in minutes — it&apos;s free</p>
-
-          {/* Role toggle */}
-          <div className="flex rounded-xl border border-slate-200 overflow-hidden mb-6">
-            <button
-              type="button"
-              onClick={() => setRole("VIEWER")}
-              className={`flex-1 py-2.5 text-sm font-semibold transition-all ${
-                role === "VIEWER"
-                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white"
-                  : "bg-white text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              I&apos;m a Customer
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole("PROVIDER")}
-              className={`flex-1 py-2.5 text-sm font-semibold transition-all ${
-                role === "PROVIDER"
-                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white"
-                  : "bg-white text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              I&apos;m a Provider
-            </button>
-          </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-4">
@@ -203,7 +173,7 @@ export default function RegisterPage() {
               className="flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-semibold rounded-xl py-3 shadow-md shadow-violet-200 transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-1"
             >
               {isLoading && <LoadingSpinner className="h-4 w-4" />}
-              {role === "PROVIDER" ? "Join as Provider" : "Create Account"}
+              Create Account
             </button>
           </form>
 
@@ -216,5 +186,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <RegisterForm />
+    </Suspense>
   );
 }

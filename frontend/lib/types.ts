@@ -12,12 +12,23 @@ export interface LoginRequest {
   password: string;
 }
 
+export type Category =
+  | "FITNESS"
+  | "BEAUTY"
+  | "HEALTH"
+  | "HOME_SERVICES"
+  | "EDUCATION"
+  | "FOOD"
+  | "PETS"
+  | "WELLNESS"
+  | "TECH"
+  | "OTHER";
+
 export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
   phoneNo: string;
-  role: string;
 }
 
 export interface UserResponse {
@@ -48,6 +59,7 @@ export interface ProviderResponse {
   totalReviews: number | null;
   maxConcurrency: number;
   isCompleted: boolean;
+  categories?: Category[];
 }
 
 export interface ServiceResponse {
@@ -61,6 +73,7 @@ export interface ServiceResponse {
   imagePath: string[];
   gmtCreate: string;
   remarks: string | null;
+  categories?: Category[];
 }
 
 export interface AppointmentResponse {

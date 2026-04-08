@@ -2,7 +2,7 @@ import type {
   JwtResponse, LoginRequest, RegisterRequest,
   UserResponse, UserProfileUpdateRequest,
   ProviderResponse, ServiceResponse, AppointmentResponse, CreateAppointmentRequest,
-  AppointmentStatus, CreateServiceRequest
+  AppointmentStatus, CreateServiceRequest,
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
@@ -17,7 +17,17 @@ function getAuthHeaders(): Record<string, string> {
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || `Request failed with status ${res.status}`);
+    try {
+      const json = JSON.parse(text);
+      // Backend ApiError shape: { errorMsg: string[] | string, ... }
+      const msg = Array.isArray(json.errorMsg)
+        ? json.errorMsg[0]
+        : (json.errorMsg ?? json.message ?? `Request failed with status ${res.status}`);
+      throw new Error(msg);
+    } catch (e) {
+      if (e instanceof Error && e.message !== text) throw e;
+      throw new Error(text || `Request failed with status ${res.status}`);
+    }
   }
   return res.json() as Promise<T>;
 }
@@ -45,6 +55,32 @@ export async function register(data: RegisterRequest, profileImage?: File): Prom
     throw new Error(text || `Registration failed with status ${res.status}`);
   }
   return res.text();
+}
+
+export async function becomeProvider(
+  data: object,
+  profileImage?: File,
+  shopImages?: File[],
+): Promise<unknown> {
+  const formData = new FormData();
+  formData.append("data", new Blob([JSON.stringify(data)], { type: "application/json" }));
+  if (profileImage) formData.append("profileImage", profileImage);
+  if (shopImages) {
+    shopImages.forEach((img) => formData.append("providerImages", img));
+  }
+  const res = await fetch(`${API_BASE}/provider/register`, {
+    method: "POST",
+    headers: { ...getAuthHeaders() },
+    body: formData,
+  });
+  return handleResponse<unknown>(res);
+}
+
+export async function getProvidersByCategory(category: string): Promise<ProviderResponse[]> {
+  const res = await fetch(
+    `${API_BASE}/public/provider/category?category=${encodeURIComponent(category)}`,
+  );
+  return handleResponse<ProviderResponse[]>(res);
 }
 
 export async function getProfile(): Promise<UserResponse> {
