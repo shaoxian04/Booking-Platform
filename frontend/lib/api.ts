@@ -2,7 +2,7 @@ import type {
   JwtResponse, LoginRequest, RegisterRequest,
   UserResponse, UserProfileUpdateRequest,
   ProviderResponse, ServiceResponse, AppointmentResponse, CreateAppointmentRequest,
-  AppointmentStatus, CreateServiceRequest,
+  AppointmentStatus, CreateServiceRequest, AvailabilitySlot,
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
@@ -117,11 +117,7 @@ export async function getProviderById(providerId: string): Promise<ProviderRespo
 }
 
 export async function getMyProviderProfile(): Promise<ProviderResponse> {
-  if (typeof window === "undefined") throw new Error("Not available server-side");
-  const stored = localStorage.getItem("user");
-  if (!stored) throw new Error("Not authenticated");
-  const user = JSON.parse(stored) as { id: string };
-  const res = await fetch(`${API_BASE}/provider/${user.id}`, {
+  const res = await fetch(`${API_BASE}/provider/me`, {
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
   });
   return handleResponse<ProviderResponse>(res);
@@ -138,7 +134,7 @@ export async function updateProviderProfile(
   if (providerImages) {
     providerImages.forEach((img) => formData.append("providerImages", img));
   }
-  const res = await fetch(`${API_BASE}/provider`, {
+  const res = await fetch(`${API_BASE}/provider/`, {
     method: "PUT",
     headers: { ...getAuthHeaders() },
     body: formData,
@@ -198,6 +194,11 @@ export async function getServicesByProviderId(providerId: string): Promise<Servi
   return handleResponse<ServiceResponse[]>(res);
 }
 
+export async function getServiceById(serviceId: string): Promise<ServiceResponse> {
+  const res = await fetch(`${API_BASE}/public/service/${serviceId}`);
+  return handleResponse<ServiceResponse>(res);
+}
+
 export async function getProviderByIdPublic(providerId: string): Promise<ProviderResponse> {
   const res = await fetch(`${API_BASE}/public/provider/${providerId}`);
   return handleResponse<ProviderResponse>(res);
@@ -232,4 +233,14 @@ export async function disableService(serviceId: string): Promise<ServiceResponse
     headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
   });
   return handleResponse<ServiceResponse>(res);
+}
+
+export async function getProviderAvailability(
+  providerId: string,
+  date: string,
+  serviceId: string,
+): Promise<AvailabilitySlot[]> {
+  const params = new URLSearchParams({ date, serviceId });
+  const res = await fetch(`${API_BASE}/public/provider/${providerId}/availability?${params}`);
+  return handleResponse<AvailabilitySlot[]>(res);
 }
