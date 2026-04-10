@@ -126,11 +126,11 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
 
         List<String> existingImages = request.getExistingImages();
 
-        if(!existingImages.isEmpty()) {
+        if(existingImages != null && !existingImages.isEmpty()) {
             finalImagesUrl.addAll(existingImages);
         }
 
-        if(!newImages.isEmpty()) {
+        if(newImages != null && !newImages.isEmpty()) {
             List<String> newImagesUrl = newImages.stream()
                     .filter(img -> !img.isEmpty())
                     .map(img -> supabaseStorageService.uploadFile(img, SERVICE_IMAGES))
@@ -139,8 +139,7 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
             finalImagesUrl.addAll(newImagesUrl);
         }
 
-        serviceDo.getImagePath().clear();
-        serviceDo.setImagePath(finalImagesUrl);
+        serviceDo.setImagePath(new ArrayList<>(finalImagesUrl));
 
         fillUpdateService(request, serviceDo);
 
@@ -149,6 +148,14 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
         log.info("updateService success, serviceId = {}, serviceName = {}", newServiceDo.getServiceId(), newServiceDo.getServiceName());
 
         return serviceProvideMapper.toResponse(newServiceDo);
+    }
+
+    @Override
+    public CreateServiceResponse getServiceById(UUID serviceId) {
+        log.info("getServiceById, serviceId = {}", serviceId);
+        ServiceProvideDO serviceDo = serviceProvideRepository.findById(serviceId)
+                .orElseThrow(() -> new NotFoundException("Service not found"));
+        return serviceProvideMapper.toResponse(serviceDo);
     }
 
     private void fillUpdateService(CreateServiceRequest request, ServiceProvideDO serviceDo) {

@@ -20,4 +20,6 @@ public interface ServiceProvideService {
     public CreateServiceResponse disableService(UUID serviceId);
 
     public CreateServiceResponse updateService(ServiceUpdateRequest request, List<MultipartFile> newImages, UUID serviceId);
+
+    public CreateServiceResponse getServiceById(UUID serviceId);
 }
