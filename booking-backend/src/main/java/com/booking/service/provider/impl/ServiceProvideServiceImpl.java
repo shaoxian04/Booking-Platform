@@ -153,7 +153,7 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
     @Override
     public CreateServiceResponse getServiceById(UUID serviceId) {
         log.info("getServiceById, serviceId = {}", serviceId);
-        ServiceProvideDO serviceDo = serviceProvideRepository.findById(serviceId)
+        ServiceProvideDO serviceDo = serviceProvideRepository.findByServiceIdAndPublishedTrue(serviceId)
                 .orElseThrow(() -> new NotFoundException("Service not found"));
         return serviceProvideMapper.toResponse(serviceDo);
     }

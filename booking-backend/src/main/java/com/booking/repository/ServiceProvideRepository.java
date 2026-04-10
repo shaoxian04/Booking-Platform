@@ -1,11 +1,12 @@
 package com.booking.repository;
 
 import com.booking.entity.DO.ServiceProvideDO;
-import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ServiceProvideRepository extends JpaRepository<ServiceProvideDO, UUID> {
@@ -14,5 +15,7 @@ public interface ServiceProvideRepository extends JpaRepository<ServiceProvideDO
     List<ServiceProvideDO> findByProviderId(@Param("providerId") UUID providerId);
 
     boolean existsByProvider_ProviderIdAndServiceNameIgnoreCase(UUID providerId, String serviceName);
+
+    Optional<ServiceProvideDO> findByServiceIdAndPublishedTrue(UUID serviceId);
 
 }
