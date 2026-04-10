@@ -22,6 +22,14 @@ function CreateServiceModal({
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [images, setImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []).slice(0, 5);
+    setImages(files);
+    setImagePreviews(files.map((f) => URL.createObjectURL(f)));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,14 +41,42 @@ function CreateServiceModal({
     }
     setIsLoading(true);
     try {
-      const created = await api.createService({
-        serviceName,
-        serviceBio,
-        duration,
-        price: priceNum,
-        remarks: remarks || undefined,
-        categories: categories.length > 0 ? categories : undefined,
-      });
+      const formData = new FormData();
+      formData.append(
+        "data",
+        new Blob(
+          [JSON.stringify({
+            serviceName,
+            serviceBio: serviceBio || undefined,
+            duration,
+            price: priceNum,
+            remarks: remarks || undefined,
+            categories: categories.length > 0 ? categories : undefined,
+          })],
+          { type: "application/json" }
+        )
+      );
+      images.forEach((img) => formData.append("images", img));
+
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api"}/service`,
+        {
+          method: "POST",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: formData,
+        }
+      );
+      if (!res.ok) {
+        const text = await res.text();
+        let msg = `Request failed with status ${res.status}`;
+        try {
+          const json = JSON.parse(text);
+          msg = Array.isArray(json.errorMsg) ? json.errorMsg[0] : (json.errorMsg ?? json.message ?? msg);
+        } catch { /* ignore */ }
+        throw new Error(msg);
+      }
+      const created = await res.json() as ServiceResponse;
       onCreated(created);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create service");
@@ -132,6 +168,31 @@ function CreateServiceModal({
               Categories <span className="text-slate-400 font-normal">(optional)</span>
             </label>
             <CategoryMultiSelect value={categories} onChange={setCategories} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              Images <span className="text-slate-400 font-normal">(optional, up to 5)</span>
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageChange}
+              className="w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 transition-all"
+            />
+            {imagePreviews.length > 0 && (
+              <div className="flex gap-2 mt-2 flex-wrap">
+                {imagePreviews.map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt={`Preview ${i + 1}`}
+                    className="w-16 h-16 rounded-xl object-cover border border-slate-200"
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {error && (
