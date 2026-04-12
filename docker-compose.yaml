@@ -44,11 +44,11 @@ services:
 
   # 4. FRONTEND (Next.js)
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost/api
     container_name: booking-frontend
-    environment:
-      # Browser talks to Traefik (localhost), NOT internal container IP
-      - NEXT_PUBLIC_API_URL=http://localhost/api
     labels:
       - "traefik.enable=true"
       # Route everything else (/) to this container

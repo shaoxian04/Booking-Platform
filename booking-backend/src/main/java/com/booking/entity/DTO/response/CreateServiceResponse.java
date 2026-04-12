@@ -20,6 +20,7 @@ public class CreateServiceResponse {
     private Integer duration;
     private BigDecimal price;
     private List<String> imagePath;
+    private List<String> categories;
     private LocalDateTime gmtCreate;
     private String remarks;
 }

@@ -47,6 +47,10 @@ public class ServiceProvideDO {
     @Column(name = "image_path", columnDefinition = "text[]")
     private List<String> imagePath;
 
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "categories", columnDefinition = "text[]")
+    private List<String> categories = new java.util.ArrayList<>();
+
     private Double rating;
 
     private String comments;

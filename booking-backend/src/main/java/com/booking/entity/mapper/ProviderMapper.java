@@ -6,6 +6,7 @@ import com.booking.entity.DTO.request.ProviderRegistrationRequest;
 import com.booking.entity.DTO.response.ProviderRegistrationResponse;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -20,6 +21,8 @@ public class ProviderMapper {
                 .user(user)
                 .location(request.getLocation())
                 .maxConcurrency(request.getMaxConcurrency())
+                .categories(request.getCategories() != null ? new ArrayList<>(request.getCategories()) : new ArrayList<>())
+                .availableTime(request.getAvailableTime())
                 .build();
     }
 
@@ -30,10 +33,12 @@ public class ProviderMapper {
                 .providerBio(providerProfileDO.getProviderBio())
                 .imagePath(providerProfileDO.getImagePath())
                 .profileImageUrl(providerProfileDO.getProfileImageUrl())
+                .categories(providerProfileDO.getCategories() != null ? new ArrayList<>(providerProfileDO.getCategories()) : new ArrayList<>())
                 .location(providerProfileDO.getLocation())
                 .averageRating(providerProfileDO.getAverageRating())
                 .totalReviews(providerProfileDO.getTotalReviews())
                 .maxConcurrency(providerProfileDO.getMaxConcurrency())
+                .availableTime(providerProfileDO.getAvailableTime())
                 .isCompleted(providerProfileDO.getIsCompleted())
                 .build();
     }

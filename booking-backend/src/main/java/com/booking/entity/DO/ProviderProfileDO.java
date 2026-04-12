@@ -41,6 +41,10 @@ public class ProviderProfileDO {
     @Column(name = "image_path", columnDefinition = "text[]")
     private List<String> imagePath;
 
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "categories", columnDefinition = "text[]")
+    private List<String> categories = new java.util.ArrayList<>();
+
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
@@ -51,6 +55,9 @@ public class ProviderProfileDO {
 
     @Column(name = "total_reviews")
     private Integer totalReviews;
+
+    @Column(name = "available_time")
+    private String availableTime;
 
     @Column(name = "max_concurrency")
     private Integer maxConcurrency;

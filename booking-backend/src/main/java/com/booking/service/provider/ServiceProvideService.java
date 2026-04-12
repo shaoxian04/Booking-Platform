@@ -15,7 +15,11 @@ public interface ServiceProvideService {
 
     public List<CreateServiceResponse> getServicesByProvider(UserDO user);
 
+    public List<CreateServiceResponse> getServicesByProviderId(UUID providerId);
+
     public CreateServiceResponse disableService(UUID serviceId);
 
     public CreateServiceResponse updateService(ServiceUpdateRequest request, List<MultipartFile> newImages, UUID serviceId);
+
+    public CreateServiceResponse getServiceById(UUID serviceId);
 }

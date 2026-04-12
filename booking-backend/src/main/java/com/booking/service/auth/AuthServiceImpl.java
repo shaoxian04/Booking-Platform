@@ -40,9 +40,11 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
 
+    private final com.booking.service.storage.SupabaseStorageService storageService;
+
     @Override
     @Transactional
-    public void register(RegisterRequest request) {
+    public void register(RegisterRequest request, org.springframework.web.multipart.MultipartFile profileImage) {
         log.info("Register service start, request = [{}]", request);
 
         AssertUtil.isTrue(!userRepository.existsByEmail(request.getEmail()), new AlreadyExistedException("email already existed"));
@@ -50,6 +52,11 @@ public class AuthServiceImpl implements AuthService {
         AssertUtil.isTrue(!userRepository.existsByUsername(request.getUsername()), new AlreadyExistedException("username already existed"));
 
         UserDO user = fillRegisterUser(request);
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+            String imageUrl = storageService.uploadFile(profileImage, "user_profile_image");
+            user.setProfileImageUrl(imageUrl);
+        }
 
         userRepository.save(user);
 

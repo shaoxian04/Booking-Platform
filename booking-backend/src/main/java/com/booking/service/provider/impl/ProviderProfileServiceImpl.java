@@ -1,19 +1,26 @@
 package com.booking.service.provider.impl;
 
+import com.booking.common.enums.Category;
+import com.booking.common.enums.DaysOfWeek;
 import com.booking.common.enums.Role;
 import com.booking.common.exception.AlreadyExistedException;
 import com.booking.common.exception.NotFoundException;
 import com.booking.common.util.AssertUtil;
 import com.booking.entity.DO.ProviderProfileDO;
 import com.booking.entity.DO.ProviderScheduleDO;
+import com.booking.entity.DO.ServiceProvideDO;
 import com.booking.entity.DO.UserDO;
 import com.booking.entity.DTO.request.CreateProviderScheduleRequest;
 import com.booking.entity.DTO.request.ProviderRegistrationRequest;
 import com.booking.entity.DTO.request.ProviderUpdateRequest;
+import com.booking.entity.DTO.response.AvailabilitySlotResponse;
 import com.booking.entity.DTO.response.ProviderRegistrationResponse;
 import com.booking.entity.mapper.ProviderMapper;
 import com.booking.entity.mapper.ProviderScheduleMapper;
+import com.booking.repository.AppointmentRepository;
 import com.booking.repository.ProviderProfileRepository;
+import com.booking.repository.ScheduleOverrideRepository;
+import com.booking.repository.ServiceProvideRepository;
 import com.booking.repository.UserRepository;
 import com.booking.service.provider.ProviderProfileService;
 import com.booking.service.storage.SupabaseStorageService;
@@ -25,7 +32,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 @Service
@@ -49,11 +58,19 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
 
     private final ProviderScheduleMapper providerScheduleMapper;
 
+    private final ServiceProvideRepository serviceProvideRepository;
+
+    private final AppointmentRepository appointmentRepository;
+
+    private final ScheduleOverrideRepository scheduleOverrideRepository;
+
     @Override
     @Transactional
     public ProviderRegistrationResponse registerProvider(UserDO user, ProviderRegistrationRequest request, MultipartFile profileImage, List<MultipartFile> providerImages) {
 
         log.info("Provider registration start, username = {}, provider name = {}", user.getUsername(), request.getProviderName());
+
+        validateCategories(request.getCategories());
 
         AssertUtil.isTrue(!providerProfileRepository.existsByUser_UserId(user.getUserId()), new AlreadyExistedException("The user already registered as provider"));
 
@@ -126,10 +143,23 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
     }
 
     @Override
+    public ProviderRegistrationResponse getMyProviderProfile(UUID userId) {
+
+        log.info("getMyProviderProfile, userId = {}", userId);
+
+        ProviderProfileDO providerDo = providerProfileRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new NotFoundException("Provider profile not found"));
+
+        return providerMapper.toResponse(providerDo);
+    }
+
+    @Override
     @Transactional
     public ProviderRegistrationResponse updateProvider(ProviderUpdateRequest request, UUID userId, MultipartFile profileImage, List<MultipartFile> newImages) {
 
         log.info("updateProvider, userId = {}", userId);
+
+        validateCategories(request.getCategories());
 
         ProviderProfileDO providerDo = providerProfileRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new NotFoundException("Provider not found"));
@@ -142,7 +172,7 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
 
         List<String> existingImages = request.getExistingImages();
 
-        if(!existingImages.isEmpty()) {
+        if(existingImages != null && !existingImages.isEmpty()) {
             finalImagesPath.addAll(existingImages);
         }
 
@@ -156,8 +186,7 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
             finalImagesPath.addAll(newProviderImages);
         }
 
-        providerDo.getImagePath().clear();
-        providerDo.setImagePath(finalImagesPath);
+        providerDo.setImagePath(new ArrayList<>(finalImagesPath));
 
         fillUpdateProvider(request, providerDo);
 
@@ -220,10 +249,84 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
                 .toList();
     }
 
+    @Override
+    public List<ProviderRegistrationResponse> queryByCategory(String category) {
+        log.info("queryByCategory, category = {}", category);
+
+        AssertUtil.isTrue(Category.isValid(category), new IllegalArgumentException("Invalid category: " + category));
+
+        List<ProviderProfileDO> providerDos = providerProfileRepository.findByCategory(category.toUpperCase());
+
+        log.info("queryByCategory, result size = {}", providerDos.size());
+
+        return providerDos.stream()
+                .map(providerMapper::toResponse)
+                .toList();
+    }
+
+
+    @Override
+    public List<AvailabilitySlotResponse> getAvailableSlots(UUID providerId, LocalDate date, UUID serviceId) {
+
+        log.info("getAvailableSlots, providerId = {}, date = {}, serviceId = {}", providerId, date, serviceId);
+
+        ProviderProfileDO provider = providerProfileRepository.findById(providerId)
+                .orElseThrow(() -> new NotFoundException("Provider not found"));
+
+        ServiceProvideDO service = serviceProvideRepository.findById(serviceId)
+                .orElseThrow(() -> new NotFoundException("Service not found"));
+
+        DaysOfWeek targetDay = DaysOfWeek.valueOf(date.getDayOfWeek().name());
+
+        List<ProviderScheduleDO> schedules = Optional.ofNullable(provider.getSchedules())
+                .orElseGet(Collections::emptyList);
+
+        ProviderScheduleDO schedule = schedules.stream()
+                .filter(s -> s.getDayOfWeek() == targetDay)
+                .findFirst()
+                .orElse(null);
+
+        if (schedule == null) {
+            return Collections.emptyList();
+        }
+
+        int duration = service.getDuration();
+        int maxConcurrency = Optional.ofNullable(provider.getMaxConcurrency()).orElse(1);
+
+        List<AvailabilitySlotResponse> slots = new ArrayList<>();
+        LocalTime cursor = schedule.getStartTime();
+
+        while (!cursor.plusMinutes(duration).isAfter(schedule.getEndTime())) {
+            LocalTime slotEnd = cursor.plusMinutes(duration);
+            LocalDateTime slotStart = date.atTime(cursor);
+            LocalDateTime slotEndDt = date.atTime(slotEnd);
+
+            int overlapCount = appointmentRepository.countOverlappingAppointments(providerId, slotStart, slotEndDt);
+
+            List<?> overrides = scheduleOverrideRepository.findOverlappingOverridesByService(
+                    providerId, serviceId, slotStart, slotEndDt);
+
+            boolean available = overlapCount < maxConcurrency && overrides.isEmpty();
+
+            slots.add(AvailabilitySlotResponse.builder()
+                    .startTime(cursor)
+                    .endTime(slotEnd)
+                    .available(available)
+                    .build());
+
+            cursor = slotEnd;
+        }
+
+        log.info("getAvailableSlots success, total slots = {}", slots.size());
+
+        return slots;
+    }
 
     private void updateUserRole(UserDO user) {
-        user.setRole(Role.PROVIDER);
-        userRepository.save(user);
+        UserDO managedUser = userRepository.findById(user.getUserId())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        managedUser.setRole(Role.PROVIDER);
+        userRepository.save(managedUser);
     }
 
     private String uploadProviderProfileImage(MultipartFile profileImage) {
@@ -248,5 +351,11 @@ public class ProviderProfileServiceImpl implements ProviderProfileService {
         providerDo.setLocation(request.getLocation());
         providerDo.setGmtModified(LocalDateTime.now());
         providerDo.setMaxConcurrency(request.getMaxConcurrency());
+        providerDo.setCategories(request.getCategories() != null ? new ArrayList<>(request.getCategories()) : new ArrayList<>());
+        providerDo.setAvailableTime(request.getAvailableTime());
+    }
+
+    private void validateCategories(List<String> categories) {
+        Category.validateList(categories);
     }
 }

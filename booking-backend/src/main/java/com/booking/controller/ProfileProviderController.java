@@ -28,6 +28,7 @@ public class ProfileProviderController {
     private final ProviderProfileService providerService;
 
     @PostMapping("/register")
+    @PreAuthorize("hasAuthority('VIEWER')")
     public ResponseEntity<ProviderRegistrationResponse> registerAsProvider(@Valid @RequestPart("data") ProviderRegistrationRequest request,
                                                                            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
                                                                            @RequestPart(value = "shopImages", required = false) List<MultipartFile> providerImages,
@@ -56,6 +57,20 @@ public class ProfileProviderController {
         log.info("update provider request received, userId = {}", user.getUserId());
 
         ProviderRegistrationResponse response = providerService.updateProvider(request, user.getUserId(), profileImage, providerImages);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasAuthority('PROVIDER')")
+    public ResponseEntity<ProviderRegistrationResponse> getMyProviderProfile(Authentication authentication) {
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        UUID userId = userDetails.getUser().getUserId();
+
+        log.info("get my provider profile, userId = {}", userId);
+
+        ProviderRegistrationResponse response = providerService.getMyProviderProfile(userId);
 
         return ResponseEntity.ok(response);
     }

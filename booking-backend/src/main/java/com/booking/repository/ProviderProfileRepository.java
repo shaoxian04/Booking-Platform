@@ -1,7 +1,7 @@
 package com.booking.repository;
 
 import com.booking.entity.DO.ProviderProfileDO;
-import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.repository.query.Param;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 
 public interface ProviderProfileRepository extends JpaRepository<ProviderProfileDO, UUID> {
     boolean existsByUser_UserId(UUID userId);
@@ -30,4 +31,7 @@ public interface ProviderProfileRepository extends JpaRepository<ProviderProfile
             "WHERE LOWER(p.providerName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "OR (LOWER(s.serviceName) LIKE LOWER(CONCAT('%', :keyword, '%')) AND s.published = TRUE)")
     List<ProviderProfileDO> findByProviderOrService(@Param("keyword") String keyword);
+
+    @Query(value = "SELECT * FROM provider_profile WHERE :category = ANY(categories)", nativeQuery = true)
+    List<ProviderProfileDO> findByCategory(@Param("category") String category);
 }

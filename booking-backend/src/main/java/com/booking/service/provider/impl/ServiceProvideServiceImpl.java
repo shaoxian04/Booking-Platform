@@ -1,5 +1,6 @@
 package com.booking.service.provider.impl;
 
+import com.booking.common.enums.Category;
 import com.booking.common.exception.AlreadyExistedException;
 import com.booking.common.exception.NotFoundException;
 import com.booking.common.util.AssertUtil;
@@ -42,6 +43,8 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
 
         log.info("create service process start, username = {}", user.getUsername());
 
+        validateCategories(request.getCategories());
+
         ProviderProfileDO provider = providerProfileRepository.findByUser_UserId(user.getUserId())
                 .orElseThrow(() -> new NotFoundException("Provider not found in DB"));
 
@@ -77,6 +80,21 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
     }
 
     @Override
+    public List<CreateServiceResponse> getServicesByProviderId(UUID providerId) {
+
+        log.info("getServicesByProviderId, providerId = {}", providerId);
+
+        providerProfileRepository.findById(providerId)
+                .orElseThrow(() -> new NotFoundException("Provider not found"));
+
+        List<ServiceProvideDO> serviceProvideDOS = serviceProvideRepository.findByProviderId(providerId);
+
+        return serviceProvideDOS.stream()
+                .map(serviceProvideMapper::toResponse)
+                .toList();
+    }
+
+    @Override
     public CreateServiceResponse disableService(UUID serviceId) {
 
         log.info("disableService, serviceId = {}", serviceId);
@@ -99,6 +117,8 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
 
         log.info("updateService, serviceId = {}, serviceName= {}", serviceId, request.getServiceName());
 
+        validateCategories(request.getCategories());
+
         ServiceProvideDO serviceDo = serviceProvideRepository.findById(serviceId)
                 .orElseThrow(() -> new NotFoundException("Service not found"));
 
@@ -106,11 +126,11 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
 
         List<String> existingImages = request.getExistingImages();
 
-        if(!existingImages.isEmpty()) {
+        if(existingImages != null && !existingImages.isEmpty()) {
             finalImagesUrl.addAll(existingImages);
         }
 
-        if(!newImages.isEmpty()) {
+        if(newImages != null && !newImages.isEmpty()) {
             List<String> newImagesUrl = newImages.stream()
                     .filter(img -> !img.isEmpty())
                     .map(img -> supabaseStorageService.uploadFile(img, SERVICE_IMAGES))
@@ -119,8 +139,7 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
             finalImagesUrl.addAll(newImagesUrl);
         }
 
-        serviceDo.getImagePath().clear();
-        serviceDo.setImagePath(finalImagesUrl);
+        serviceDo.setImagePath(new ArrayList<>(finalImagesUrl));
 
         fillUpdateService(request, serviceDo);
 
@@ -131,11 +150,24 @@ public class ServiceProvideServiceImpl implements ServiceProvideService {
         return serviceProvideMapper.toResponse(newServiceDo);
     }
 
+    @Override
+    public CreateServiceResponse getServiceById(UUID serviceId) {
+        log.info("getServiceById, serviceId = {}", serviceId);
+        ServiceProvideDO serviceDo = serviceProvideRepository.findByServiceIdAndPublishedTrue(serviceId)
+                .orElseThrow(() -> new NotFoundException("Service not found"));
+        return serviceProvideMapper.toResponse(serviceDo);
+    }
+
     private void fillUpdateService(CreateServiceRequest request, ServiceProvideDO serviceDo) {
 
         serviceDo.setServiceName(request.getServiceName());
         serviceDo.setServiceBio(request.getServiceBio());
         serviceDo.setDuration(request.getDuration());
         serviceDo.setPrice(request.getPrice());
+        serviceDo.setCategories(request.getCategories() != null ? new ArrayList<>(request.getCategories()) : new ArrayList<>());
+    }
+
+    private void validateCategories(List<String> categories) {
+        Category.validateList(categories);
     }
 }
