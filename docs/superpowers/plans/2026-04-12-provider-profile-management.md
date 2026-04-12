@@ -1,3 +1,33 @@
+# Provider Profile Management — Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Replace the simple edit form at `/dashboard/profile` with a storefront-style profile page that has view mode (customer preview) and inline edit mode with a sticky Publish bar.
+
+**Architecture:** Single file replacement — `frontend/app/dashboard/profile/page.tsx`. View mode renders the full storefront layout (hero → gallery → about → services) so providers see exactly what customers see. Clicking "Edit Profile" enters edit mode, where each section's content is replaced by editable inputs; a sticky top bar holds Publish and Cancel. No backend or API changes.
+
+**Tech Stack:** Next.js 16, React 19, TypeScript, Tailwind CSS 4. Reuses existing `CategoryMultiSelect`, `LoadingSpinner`, `CategoryPills` components and `api.getMyProviderProfile`, `api.getMyServices`, `api.updateProviderProfile`.
+
+---
+
+## File Map
+
+| Action | Path | Responsibility |
+|--------|------|----------------|
+| Modify (full rewrite) | `frontend/app/dashboard/profile/page.tsx` | Storefront-style view + edit page |
+
+No other files change.
+
+---
+
+### Task 1: Scaffold the page — data fetching, loading/error states
+
+**Files:**
+- Modify: `frontend/app/dashboard/profile/page.tsx` (full rewrite)
+
+- [ ] **Step 1: Replace the file with the scaffold below**
+
+```tsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -144,10 +174,61 @@ export default function DashboardMyProfilePage() {
 
   if (!provider) return null;
 
+  // Hero image: in edit mode use preview if set, else first imagePath
   const heroImageSrc = isEditing
     ? (newProfileImagePreview ?? provider.imagePath?.[0] ?? null)
     : (provider.imagePath?.[0] ?? null);
 
+  // Gallery strip images (exclude index 0 which is hero)
+  const galleryImages = isEditing ? editExistingImages.slice(1) : (provider.imagePath?.slice(1) ?? []);
+
+  return (
+    <div className="-mx-4 md:-mx-0">
+      {/* TODO: sticky bar, hero, gallery, about, advanced, services */}
+      <p className="p-8 text-slate-400">Scaffold complete — sections coming in next tasks</p>
+    </div>
+  );
+}
+```
+
+- [ ] **Step 2: Verify the frontend compiles without errors**
+
+```bash
+cd frontend && npm run build 2>&1 | tail -20
+```
+
+Expected: No TypeScript errors. The page renders a placeholder paragraph.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add frontend/app/dashboard/profile/page.tsx
+git commit -m "feat: scaffold storefront-style profile page with data fetching"
+```
+
+---
+
+### Task 2: Add sticky edit bar and hero section
+
+**Files:**
+- Modify: `frontend/app/dashboard/profile/page.tsx`
+
+Replace the `return` block's inner content (the placeholder `<p>` and its parent `<div>`) with the full layout below. Keep all code above the `return` statement unchanged.
+
+- [ ] **Step 1: Replace the return block with hero + sticky bar**
+
+Replace:
+```tsx
+  return (
+    <div className="-mx-4 md:-mx-0">
+      {/* TODO: sticky bar, hero, gallery, about, advanced, services */}
+      <p className="p-8 text-slate-400">Scaffold complete — sections coming in next tasks</p>
+    </div>
+  );
+```
+
+With:
+```tsx
   return (
     <div className="-mx-4 md:-mx-0">
       {/* ── Sticky edit bar (edit mode only) ─────────────────────────── */}
@@ -178,6 +259,7 @@ export default function DashboardMyProfilePage() {
         </div>
       )}
 
+      {/* top padding when sticky bar is shown */}
       {isEditing && <div className="h-14" />}
 
       {/* ── Banners ───────────────────────────────────────────────────── */}
@@ -200,14 +282,13 @@ export default function DashboardMyProfilePage() {
 
       {/* ── Hero ──────────────────────────────────────────────────────── */}
       <div className="h-72 md:h-96 relative overflow-hidden rounded-b-3xl">
+        {/* Hero background */}
         {heroImageSrc ? (
           <img src={heroImageSrc} alt={provider.providerName} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center">
-            <span
-              className="text-white font-bold select-none"
-              style={{ fontSize: "clamp(6rem, 20vw, 12rem)", lineHeight: 1, opacity: 0.2 }}
-            >
+            <span className="text-white font-bold select-none"
+              style={{ fontSize: "clamp(6rem, 20vw, 12rem)", lineHeight: 1, opacity: 0.2 }}>
               {(isEditing ? editName : provider.providerName).charAt(0).toUpperCase()}
             </span>
           </div>
@@ -230,7 +311,7 @@ export default function DashboardMyProfilePage() {
           </div>
         )}
 
-        {/* Change photo button (edit mode) */}
+        {/* Edit mode: click hero to change profile image */}
         {isEditing && (
           <div className="absolute top-4 right-4">
             <input
@@ -306,6 +387,7 @@ export default function DashboardMyProfilePage() {
                   </span>
                 )}
               </div>
+              {/* View Public Page link — below hero metadata */}
               <div className="mt-3">
                 <Link
                   href={`/providers/${provider.providerId}`}
@@ -324,6 +406,50 @@ export default function DashboardMyProfilePage() {
         </div>
       </div>
 
+      {/* ── Placeholder for remaining sections ────────────────────────── */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <p className="text-slate-400">Gallery, About, Services coming in next tasks</p>
+      </div>
+    </div>
+  );
+```
+
+- [ ] **Step 2: Verify no TypeScript errors**
+
+```bash
+cd frontend && npm run build 2>&1 | tail -20
+```
+
+Expected: Successful build.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add frontend/app/dashboard/profile/page.tsx
+git commit -m "feat: add sticky edit bar and hero section to profile page"
+```
+
+---
+
+### Task 3: Add gallery strip, about section, categories edit, advanced section
+
+**Files:**
+- Modify: `frontend/app/dashboard/profile/page.tsx`
+
+Replace the `{/* ── Placeholder for remaining sections ── */}` block with the full `<main>` block below.
+
+- [ ] **Step 1: Replace the placeholder with the main content sections**
+
+Replace:
+```tsx
+      {/* ── Placeholder for remaining sections ────────────────────────── */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <p className="text-slate-400">Gallery, About, Services coming in next tasks</p>
+      </div>
+```
+
+With:
+```tsx
       {/* ── Gallery strip ─────────────────────────────────────────────── */}
       {isEditing ? (
         <div className="max-w-6xl mx-auto px-4 mt-4">
@@ -401,7 +527,7 @@ export default function DashboardMyProfilePage() {
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex flex-col gap-6">
 
-          {/* Categories (edit mode card; in view mode shown in hero) */}
+          {/* Categories (edit mode only as a card; in view mode shown in hero) */}
           {isEditing && (
             <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
               <h2 className="text-lg font-bold text-slate-900 mb-3">Categories</h2>
@@ -430,7 +556,7 @@ export default function DashboardMyProfilePage() {
             )
           )}
 
-          {/* Advanced — max concurrency (edit mode only) */}
+          {/* Advanced (edit mode: max concurrency; view mode: hidden) */}
           {isEditing && (
             <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
               <h2 className="text-lg font-bold text-slate-900 mb-3">Advanced</h2>
@@ -450,7 +576,7 @@ export default function DashboardMyProfilePage() {
           )}
 
           {/* Services */}
-          <div>
+          <div className={isEditing ? "relative" : ""}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-slate-900">
                 {isEditing ? "Services" : "Available Services"}
@@ -486,6 +612,12 @@ export default function DashboardMyProfilePage() {
                     key={service.serviceId}
                     className="block rounded-2xl overflow-hidden border-2 border-slate-100 bg-white shadow-sm relative"
                   >
+                    {/* disabled badge — services from getMyServices() may be disabled */}
+                    {"isDisabled" in service && (service as { isDisabled?: boolean }).isDisabled && (
+                      <span className="absolute top-2 right-2 z-10 bg-slate-100 text-slate-400 text-xs rounded-full px-2 py-0.5">
+                        Disabled
+                      </span>
+                    )}
                     {service.imagePath && service.imagePath.length > 0 ? (
                       <img
                         src={service.imagePath[0]}
@@ -524,4 +656,79 @@ export default function DashboardMyProfilePage() {
       </main>
     </div>
   );
-}
+```
+
+- [ ] **Step 2: Verify no TypeScript errors**
+
+```bash
+cd frontend && npm run build 2>&1 | tail -20
+```
+
+Expected: Successful build with no errors.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add frontend/app/dashboard/profile/page.tsx
+git commit -m "feat: add gallery, about, categories, advanced, and services sections to profile page"
+```
+
+---
+
+### Task 4: Verify end-to-end in browser
+
+**Files:** None (read-only verification)
+
+- [ ] **Step 1: Start the stack**
+
+```bash
+docker-compose up -d --build
+docker-compose ps
+```
+
+Expected: All services `Up`.
+
+- [ ] **Step 2: Log in as a PROVIDER account and navigate to `/dashboard/profile`**
+
+Verify view mode:
+- Hero image (or gradient fallback) fills `h-72 md:h-96`
+- Provider name, location, availableTime shown in hero overlay
+- Category pills visible in hero
+- "Edit Profile" button overlaid top-right of hero
+- "View Public Page →" link appears below hero metadata
+- Gallery strip shows if provider has >1 image
+- About card shows bio
+- Services grid shows all provider services (including disabled if any)
+
+- [ ] **Step 3: Click "Edit Profile" and verify edit mode**
+
+Verify:
+- Sticky bar appears at top with "Publish" and "Cancel" buttons
+- Hero shows text inputs for name, location, available time
+- "Change photo" button appears top-right of hero
+- Categories card shows `CategoryMultiSelect`
+- About section shows textarea
+- Advanced card shows max concurrent bookings number input
+- Services grid is greyed out / non-clickable with "Manage Services →" link
+
+- [ ] **Step 4: Edit fields and click "Publish"**
+
+Verify:
+- Page exits edit mode
+- Success banner "Profile published successfully!" appears
+- Updated values are reflected in view mode
+- Public storefront at `/providers/[providerId]` shows updated values (may need a refresh)
+
+- [ ] **Step 5: Test cancel flow**
+
+Enter edit mode → change some fields → click "Cancel"
+Verify: Page returns to view mode with original values restored. No API call is made.
+
+- [ ] **Step 6: Commit final state**
+
+```bash
+git add -p  # stage only if any fixes were needed
+git commit -m "fix: profile page browser verification fixes"
+```
+
+(Skip commit if no changes were needed.)
