@@ -1,5 +1,6 @@
 package com.booking.controller;
 
+import com.booking.entity.DTO.response.AvailabilitySlotResponse;
 import com.booking.entity.DTO.response.CreateServiceResponse;
 import com.booking.entity.DTO.response.ProviderRegistrationResponse;
 import com.booking.service.provider.ProviderProfileService;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -73,5 +75,20 @@ public class PublicProviderController {
         List<ProviderRegistrationResponse> responses = providerProfileService.queryByCategory(category);
 
         return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/{providerId}/availability")
+    public ResponseEntity<List<AvailabilitySlotResponse>> getAvailability(
+            @PathVariable UUID providerId,
+            @RequestParam String date,
+            @RequestParam UUID serviceId) {
+
+        log.info("public getAvailability, providerId = {}, date = {}, serviceId = {}", providerId, date, serviceId);
+
+        LocalDate localDate = LocalDate.parse(date);
+
+        List<AvailabilitySlotResponse> slots = providerProfileService.getAvailableSlots(providerId, localDate, serviceId);
+
+        return ResponseEntity.ok(slots);
     }
 }

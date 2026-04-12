@@ -61,6 +61,20 @@ public class ProfileProviderController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("hasAuthority('PROVIDER')")
+    public ResponseEntity<ProviderRegistrationResponse> getMyProviderProfile(Authentication authentication) {
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        UUID userId = userDetails.getUser().getUserId();
+
+        log.info("get my provider profile, userId = {}", userId);
+
+        ProviderRegistrationResponse response = providerService.getMyProviderProfile(userId);
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{providerId}")
     public ResponseEntity<ProviderRegistrationResponse> getProviderById(@PathVariable UUID providerId) {
 

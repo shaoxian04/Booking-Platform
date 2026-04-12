@@ -20,5 +20,6 @@ public class ProviderRegistrationResponse {
     private Double averageRating;
     private Integer totalReviews;
     private Integer maxConcurrency;
+    private String availableTime;
     private Boolean isCompleted;
 }

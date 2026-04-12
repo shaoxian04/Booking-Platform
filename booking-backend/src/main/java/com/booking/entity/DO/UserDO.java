@@ -40,6 +40,9 @@ public class UserDO {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
     @CreationTimestamp
     @Column(name = "gmt_create", updatable = false)
     private LocalDateTime gmtCreate;

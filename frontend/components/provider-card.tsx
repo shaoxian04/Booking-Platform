@@ -22,9 +22,9 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 export function ProviderCard({ provider }: { provider: ProviderResponse }) {
-  const bio = provider.providerBio.length > 90
-    ? provider.providerBio.slice(0, 90) + "…"
-    : provider.providerBio;
+  const bio = (provider.providerBio ?? "").length > 90
+    ? (provider.providerBio ?? "").slice(0, 90) + "…"
+    : (provider.providerBio ?? "");
 
   return (
     <Link href={`/providers/${provider.providerId}`}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
@@ -54,10 +54,12 @@ export function Navbar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const navLinks = user?.role === "PROVIDER" ? PROVIDER_LINKS : VIEWER_LINKS;
+  useEffect(() => { setMounted(true); }, []);
 
-  if (!user) {
+  // Render the logged-out shell until client hydration is complete
+  if (!mounted || !user) {
     return (
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
         <div className="max-w-6xl mx-auto px-4">
@@ -93,6 +95,8 @@ export function Navbar() {
       </nav>
     );
   }
+
+  const navLinks = user.role === "PROVIDER" ? PROVIDER_LINKS : VIEWER_LINKS;
 
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/60 shadow-sm">

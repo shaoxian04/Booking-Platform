@@ -135,3 +135,25 @@ frontend/lib/resolve-names.ts  → In-memory cache for resolving provider/servic
 **Multipart endpoints:** `POST /api/auth/register` and `PUT /api/user/profile` use `multipart/form-data` with a `data` JSON Blob part and optional `profileImage` file part.
 
 **API base URL:** Configured via `NEXT_PUBLIC_API_URL` env var (build-time). Defaults to `http://localhost:8080/api`. In Docker, Traefik proxies frontend on port 80 and the env var is set to `http://localhost/api` via a build arg in `docker-compose.yaml`.
+
+## Testing / Evaluation
+
+**Always start the full Docker Compose stack before running any tests or browser evaluation.** Never test against a partial environment (frontend only or backend only).
+
+```bash
+# From the project root (directory containing docker-compose.yaml)
+docker-compose up -d --build
+
+# Verify all services are up
+docker-compose ps
+
+# Health check
+curl http://localhost/api/actuator/health   # backend via Traefik
+curl http://localhost/                      # frontend via Traefik
+```
+
+The full stack exposes everything through Traefik on **port 80**:
+- Frontend: `http://localhost`
+- Backend API: `http://localhost/api`
+
+After evaluation, you may stop the stack with `docker-compose down` if needed, but do not stop it automatically — the user may want to inspect the running state.

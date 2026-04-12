@@ -19,6 +19,8 @@ public class AppointmentMapper {
                 .endTime(request.getEndTime())
                 .remarks(request.getRemarks())
                 .provider(providerDo)
+                .isAccepted(false)
+                .isCompleted(false)
                 .build();
     }
 

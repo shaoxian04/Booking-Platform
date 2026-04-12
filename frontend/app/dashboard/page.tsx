@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { formatAppointmentTime } from "@/lib/date-utils";
+import { resolveAppointmentNames } from "@/lib/resolve-names";
 import * as api from "@/lib/api";
 import type { AppointmentResponse, AppointmentStatus } from "@/lib/types";
 
@@ -12,30 +14,36 @@ const TABS: { key: AppointmentStatus; label: string; color: string; dot: string 
   { key: "completed", label: "Completed", color: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-400" },
 ];
 
-function formatAppointmentTime(startIso: string, endIso: string): string {
-  const start = new Date(startIso);
-  const end = new Date(endIso);
-  const dateStr = start.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-  const startTime = start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  const endTime = end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  return `${dateStr} • ${startTime} – ${endTime}`;
-}
-
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<AppointmentStatus>("unaccepted");
   const [appointments, setAppointments] = useState<AppointmentResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [serviceNames, setServiceNames] = useState<Map<string, string>>(new Map());
+  const [namesLoading, setNamesLoading] = useState(false);
 
   const activeTabConfig = TABS.find((t) => t.key === activeTab)!;
 
   const fetchAppointments = useCallback(async () => {
     setError("");
     setIsLoading(true);
+    setServiceNames(new Map());
     try {
       const data = await api.getProviderAppointments(activeTab);
       setAppointments(data);
+
+      if (data.length > 0) {
+        setNamesLoading(true);
+        try {
+          const { serviceNames: sn } = await resolveAppointmentNames(data);
+          setServiceNames(sn);
+        } catch {
+          // silently fall back — service names will show "Unknown service"
+        } finally {
+          setNamesLoading(false);
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load appointments");
     } finally {
@@ -125,67 +133,77 @@ export default function DashboardPage() {
 
       {!isLoading && appointments.length > 0 && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          {appointments.map((appt) => (
-            <div key={appt.appointmentId} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className={`px-5 py-2 border-b flex items-center gap-2 ${activeTabConfig.color}`}>
-                <span className={`w-2 h-2 rounded-full ${activeTabConfig.dot}`} />
-                <span className="text-xs font-semibold">{activeTabConfig.label}</span>
-              </div>
+          {appointments.map((appt) => {
+            const serviceName = namesLoading
+              ? null
+              : (serviceNames.get(`${appt.serviceId}::${appt.providerId}`) ?? "Unknown service");
 
-              <div className="p-5 flex flex-col gap-3">
-                {/* Customer */}
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            return (
+              <div key={appt.appointmentId} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div className={`px-5 py-2 border-b flex items-center gap-2 ${activeTabConfig.color}`}>
+                  <span className={`w-2 h-2 rounded-full ${activeTabConfig.dot}`} />
+                  <span className="text-xs font-semibold">{activeTabConfig.label}</span>
+                </div>
+
+                <div className="p-5 flex flex-col gap-3">
+                  {/* Service info */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      {namesLoading ? (
+                        <div className="h-4 w-32 bg-slate-100 rounded animate-pulse" />
+                      ) : (
+                        <p className="font-semibold text-slate-900 text-sm">{serviceName}</p>
+                      )}
+                      <p className="text-slate-400 text-xs mt-0.5">Customer booking</p>
+                    </div>
+                  </div>
+
+                  {/* Time */}
+                  <div className="flex items-center gap-2 text-xs text-slate-600">
+                    <svg className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
+                    {formatAppointmentTime(appt.startTime, appt.endTime)}
                   </div>
-                  <div>
-                    <p className="font-semibold text-slate-900 text-sm">Customer</p>
-                    <p className="text-slate-400 text-xs">Customer</p>
+
+                  {appt.remarks && (
+                    <p className="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                      <span className="font-semibold text-slate-600">Note:</span> {appt.remarks}
+                    </p>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex gap-2 pt-1">
+                    {activeTab === "unaccepted" && (
+                      <button
+                        onClick={() => handleAccept(appt.appointmentId)}
+                        disabled={actionLoading === appt.appointmentId}
+                        className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-sm font-semibold rounded-xl py-2 transition-all disabled:opacity-60"
+                      >
+                        {actionLoading === appt.appointmentId && <LoadingSpinner className="h-3.5 w-3.5" />}
+                        Accept
+                      </button>
+                    )}
+                    {activeTab === "accepted" && (
+                      <button
+                        onClick={() => handleComplete(appt.appointmentId)}
+                        disabled={actionLoading === appt.appointmentId}
+                        className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-semibold rounded-xl py-2 transition-all disabled:opacity-60"
+                      >
+                        {actionLoading === appt.appointmentId && <LoadingSpinner className="h-3.5 w-3.5" />}
+                        Mark Complete
+                      </button>
+                    )}
                   </div>
-                </div>
-
-                {/* Time */}
-                <div className="flex items-center gap-2 text-xs text-slate-600">
-                  <svg className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {formatAppointmentTime(appt.startTime, appt.endTime)}
-                </div>
-
-                {appt.remarks && (
-                  <p className="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
-                    <span className="font-semibold text-slate-600">Note:</span> {appt.remarks}
-                  </p>
-                )}
-
-                {/* Actions */}
-                <div className="flex gap-2 pt-1">
-                  {activeTab === "unaccepted" && (
-                    <button
-                      onClick={() => handleAccept(appt.appointmentId)}
-                      disabled={actionLoading === appt.appointmentId}
-                      className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-sm font-semibold rounded-xl py-2 transition-all disabled:opacity-60"
-                    >
-                      {actionLoading === appt.appointmentId && <LoadingSpinner className="h-3.5 w-3.5" />}
-                      Accept
-                    </button>
-                  )}
-                  {activeTab === "accepted" && (
-                    <button
-                      onClick={() => handleComplete(appt.appointmentId)}
-                      disabled={actionLoading === appt.appointmentId}
-                      className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-semibold rounded-xl py-2 transition-all disabled:opacity-60"
-                    >
-                      {actionLoading === appt.appointmentId && <LoadingSpinner className="h-3.5 w-3.5" />}
-                      Mark Complete
-                    </button>
-                  )}
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

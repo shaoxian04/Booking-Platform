@@ -23,6 +23,7 @@ public class ServiceProvideMapper {
                 .imagePath(images)
                 .remarks(request.getRemarks())
                 .categories(request.getCategories() != null ? new ArrayList<>(request.getCategories()) : new ArrayList<>())
+                .published(true)
                 .build();
     }
 

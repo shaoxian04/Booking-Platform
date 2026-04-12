@@ -22,6 +22,7 @@ public class ProviderMapper {
                 .location(request.getLocation())
                 .maxConcurrency(request.getMaxConcurrency())
                 .categories(request.getCategories() != null ? new ArrayList<>(request.getCategories()) : new ArrayList<>())
+                .availableTime(request.getAvailableTime())
                 .build();
     }
 
@@ -37,6 +38,7 @@ public class ProviderMapper {
                 .averageRating(providerProfileDO.getAverageRating())
                 .totalReviews(providerProfileDO.getTotalReviews())
                 .maxConcurrency(providerProfileDO.getMaxConcurrency())
+                .availableTime(providerProfileDO.getAvailableTime())
                 .isCompleted(providerProfileDO.getIsCompleted())
                 .build();
     }

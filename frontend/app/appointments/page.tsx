@@ -5,6 +5,7 @@ import { Navbar } from "@/components/navbar";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import * as api from "@/lib/api";
 import { resolveAppointmentNames } from "@/lib/resolve-names";
+import { formatAppointmentTime, formatDate } from "@/lib/date-utils";
 import type { AppointmentResponse } from "@/lib/types";
 
 type TabKey = "unaccepted" | "accepted" | "completed" | "not-completed";
@@ -15,19 +16,6 @@ const TABS: { key: TabKey; label: string; color: string; dot: string }[] = [
   { key: "not-completed", label: "In Progress", color: "bg-violet-50 text-violet-700 border-violet-200", dot: "bg-violet-400" },
   { key: "completed", label: "Completed", color: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-400" },
 ];
-
-function formatAppointmentTime(startIso: string, endIso: string): string {
-  const start = new Date(startIso);
-  const end = new Date(endIso);
-  const dateStr = start.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-  const startTime = start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  const endTime = end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  return `${dateStr} • ${startTime} – ${endTime}`;
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
-}
 
 export default function AppointmentsPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("unaccepted");
@@ -139,7 +127,7 @@ export default function AppointmentsPage() {
         {!isLoading && appointments.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {appointments.map((appt) => {
-              const serviceName = serviceNames.get(appt.serviceId);
+              const serviceName = serviceNames.get(`${appt.serviceId}::${appt.providerId}`);
               const providerName = providerNames.get(appt.providerId);
 
               return (

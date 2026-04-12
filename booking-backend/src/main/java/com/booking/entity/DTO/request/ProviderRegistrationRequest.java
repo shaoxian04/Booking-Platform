@@ -24,4 +24,6 @@ public class ProviderRegistrationRequest {
 
     private List<String> categories = new ArrayList<>();
 
+    private String availableTime;
+
 }

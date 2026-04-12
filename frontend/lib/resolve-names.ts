@@ -1,8 +1,9 @@
 import * as api from "./api";
 
 const providerNameCache = new Map<string, string>();
+// All service cache keys use format: `${serviceId}::${providerId}`
 const serviceNameCache = new Map<string, string>();
-const providerServicesCache = new Map<string, Map<string, string>>();
+const providerServicesCache = new Map<string, boolean>();
 
 export async function resolveProviderNames(ids: string[]): Promise<Map<string, string>> {
   const uncached = ids.filter((id) => !providerNameCache.has(id));
@@ -26,7 +27,7 @@ export async function resolveProviderNames(ids: string[]): Promise<Map<string, s
 }
 
 export async function resolveServiceName(serviceId: string, providerId: string): Promise<string> {
-  const cacheKey = `${providerId}:${serviceId}`;
+  const cacheKey = `${serviceId}::${providerId}`;
   if (serviceNameCache.has(cacheKey)) {
     return serviceNameCache.get(cacheKey)!;
   }
@@ -34,20 +35,17 @@ export async function resolveServiceName(serviceId: string, providerId: string):
   if (!providerServicesCache.has(providerId)) {
     try {
       const services = await api.getServicesByProviderId(providerId);
-      const serviceMap = new Map<string, string>();
       for (const svc of services) {
-        serviceMap.set(svc.serviceId, svc.serviceName);
-        serviceNameCache.set(`${providerId}:${svc.serviceId}`, svc.serviceName);
+        serviceNameCache.set(`${svc.serviceId}::${providerId}`, svc.serviceName);
       }
-      providerServicesCache.set(providerId, serviceMap);
+      providerServicesCache.set(providerId, true);
     } catch {
       serviceNameCache.set(cacheKey, "Unknown service");
       return "Unknown service";
     }
   }
 
-  const name = serviceNameCache.get(cacheKey) ?? "Unknown service";
-  return name;
+  return serviceNameCache.get(cacheKey) ?? "Unknown service";
 }
 
 export async function resolveAppointmentNames(
@@ -60,7 +58,7 @@ export async function resolveAppointmentNames(
   await Promise.allSettled(
     appointments.map(async ({ serviceId, providerId }) => {
       const name = await resolveServiceName(serviceId, providerId);
-      serviceNames.set(serviceId, name);
+      serviceNames.set(`${serviceId}::${providerId}`, name);
     })
   );
 

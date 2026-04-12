@@ -105,3 +105,9 @@ export interface CreateServiceRequest {
 }
 
 export type AppointmentStatus = "unaccepted" | "accepted" | "completed" | "not-completed";
+
+export interface AvailabilitySlot {
+  startTime: string;
+  endTime: string;
+  available: boolean;
+}

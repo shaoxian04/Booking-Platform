@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -58,6 +59,20 @@ public class GlobalExceptionHandler {
         log.warn("Exception caught", ex);
 
         return new ResponseEntity<>(ApiError.conflictRequest(ex), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFoundException(NotFoundException ex) {
+        log.warn("Exception caught", ex);
+
+        return new ResponseEntity<>(ApiError.badRequest(ex), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAccessDeniedException(AccessDeniedException ex) {
+        log.warn("Exception caught", ex);
+
+        return new ResponseEntity<>(ApiError.badRequest(ex), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(RuntimeException.class)
