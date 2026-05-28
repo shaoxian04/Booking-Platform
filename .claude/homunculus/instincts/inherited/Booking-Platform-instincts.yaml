@@ -1,0 +1,575 @@
+# Instincts generated from https://github.com/shaoxian04/Booking-Platform
+# Generated: 2026-04-12T10:39:00.303Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: Booking-Platform-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/shaoxian04/Booking-Platform
+---
+
+# Booking Platform Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat, docs, fix, chore
+
+## Evidence
+
+- 21 commits analyzed
+- Detected conventional commit pattern
+- Examples: feat: implement must-have steps for booking-platform-frontend, docs: add iteration state file for booking-platform-frontend
+
+---
+id: Booking-Platform-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/shaoxian04/Booking-Platform
+---
+
+# Booking Platform Commit Length
+
+## Action
+
+Write moderate-length commit messages (~60 characters)
+
+## Evidence
+
+- Average commit message length: 60 chars
+- Based on 21 commits
+
+---
+id: Booking-Platform-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/shaoxian04/Booking-Platform
+---
+
+# Booking Platform Naming Files
+
+## Action
+
+Use PascalCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: PascalCase
+
+---
+id: Booking-Platform-import-alias
+trigger: "when importing modules"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/shaoxian04/Booking-Platform
+---
+
+# Booking Platform Import Alias
+
+## Action
+
+Use path aliases (@/, ~/) instead of relative imports
+
+## Evidence
+
+- Import analysis shows alias pattern
+- Example: import { x } from '@/lib/x'
+
+---
+id: Booking-Platform-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/shaoxian04/Booking-Platform
+---
+
+# Booking Platform Export Style
+
+## Action
+
+Prefer default exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: default
+
+---
+id: Booking-Platform-workflow-feature-development
+trigger: "when implementing a new feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/shaoxian04/Booking-Platform
+---
+
+# Booking Platform Workflow Feature Development
+
+## Action
+
+Follow the feature-development workflow:
+1. Add feature implementation
+2. Add tests for feature
+3. Update documentation
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~26x per month
+- Files: frontend/app/appointments/*, frontend/app/*, frontend/app/providers/[providerid]/*
+
+---
+id: Booking-Platform-workflow-add-or-extend-api-endpoint-backend-frontend
+trigger: "when doing add or extend api endpoint backend frontend"
+confidence: 0.65
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/shaoxian04/Booking-Platform
+---
+
+# Booking Platform Workflow Add Or Extend Api Endpoint Backend Frontend
+
+## Action
+
+Follow the add-or-extend-api-endpoint-backend-frontend workflow:
+1. Implement service method in backend (ServiceProvideService.java, ServiceProvideServiceImpl.java, etc.)
+2. Add or update controller in backend (e.g., PublicProviderController.java, PublicServiceController.java)
+3. Expose new endpoint in backend (e.g., /api/public/service/{serviceId})
+4. Update frontend API client (frontend/lib/api.ts) to call new endpoint
+5. Update or create frontend page/component to use new API (e.g., page.tsx, provider detail, service detail)
+6. Extend types if necessary (frontend/lib/types.ts)
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~3x per month
+- Files: booking-backend/src/main/java/com/booking/controller/*.java, booking-backend/src/main/java/com/booking/service/**/*.java, frontend/lib/api.ts
+
+---
+id: Booking-Platform-workflow-add-or-extend-domain-model-with-new-field-or-entity
+trigger: "when doing add or extend domain model with new field or entity"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/shaoxian04/Booking-Platform
+---
+
+# Booking Platform Workflow Add Or Extend Domain Model With New Field Or Entity
+
+## Action
+
+Follow the add-or-extend-domain-model-with-new-field-or-entity workflow:
+1. Add new field to backend entity (e.g., ProviderProfileDO.java, ServiceProvideDO.java)
+2. Update DTOs for request/response (e.g., ProviderRegistrationRequest.java, CreateServiceRequest.java, ProviderRegistrationResponse.java)
+3. Update mappers to map new field (e.g., ProviderMapper.java, ServiceProvideMapper.java)
+4. Add/extend validation logic (e.g., Category.java, ServiceProvideServiceImpl.java)
+5. Update repository if needed for new queries (e.g., ProviderProfileRepository.java)
+6. Update or add API endpoints to handle new field
+7. Update frontend types (frontend/lib/types.ts)
+8. Update frontend UI to use/display new field
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: booking-backend/src/main/java/com/booking/entity/DO/*.java, booking-backend/src/main/java/com/booking/entity/DTO/**/*.java, booking-backend/src/main/java/com/booking/entity/mapper/*.java
+
+---
+id: Booking-Platform-workflow-feature-development-full-stack
+trigger: "when doing feature development full stack"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/shaoxian04/Booking-Platform
+---
+
+# Booking Platform Workflow Feature Development Full Stack
+
+## Action
+
+Follow the feature-development-full-stack workflow:
+1. Implement backend service/controller logic
+2. Expose or update API endpoint
+3. Update frontend API client and types
+4. Implement or update frontend UI (pages, components)
+5. Update navigation or guards if needed
+6. Update documentation or plans if needed
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: booking-backend/src/main/java/com/booking/controller/*.java, booking-backend/src/main/java/com/booking/service/**/*.java, frontend/lib/api.ts
+
+---
+id: Booking-Platform-workflow-add-or-update-frontend-page-or-component
+trigger: "when doing add or update frontend page or component"
+confidence: 0.65
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/shaoxian04/Booking-Platform
+---
+
+# Booking Platform Workflow Add Or Update Frontend Page Or Component
+
+## Action
+
+Follow the add-or-update-frontend-page-or-component workflow:
+1. Create or update page/component file in frontend/app or frontend/components
+2. Update or add supporting API calls in frontend/lib/api.ts
+3. Update types in frontend/lib/types.ts if needed
+4. Wire up navigation or UI logic
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~3x per month
+- Files: frontend/app/**/*.tsx, frontend/components/*.tsx, frontend/lib/api.ts
+
+---
+id: Booking-Platform-workflow-fix-or-refactor-backend-entity-or-api
+trigger: "when doing fix or refactor backend entity or api"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/shaoxian04/Booking-Platform
+---
+
+# Booking Platform Workflow Fix Or Refactor Backend Entity Or Api
+
+## Action
+
+Follow the fix-or-refactor-backend-entity-or-api workflow:
+1. Update backend entity or DTO (e.g., add nullable field, fix mapping)
+2. Update validation or helper logic
+3. Update controller or service as needed
+4. Update repository or query if necessary
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: booking-backend/src/main/java/com/booking/entity/DO/*.java, booking-backend/src/main/java/com/booking/entity/DTO/**/*.java, booking-backend/src/main/java/com/booking/service/**/*.java
+
+---
+id: booking-platform-instinct-naming-files
+trigger: "When creating a new file in the codebase"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Naming Files
+
+## Action
+
+Name the file using PascalCase
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.files
+- Observed in booking-backend/src/main/java/com/booking/controller/PublicProviderController.java
+
+---
+id: booking-platform-instinct-naming-functions
+trigger: "When defining a new function"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Naming Functions
+
+## Action
+
+Use camelCase for function names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.functions
+
+---
+id: booking-platform-instinct-naming-classes
+trigger: "When defining a new class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Naming Classes
+
+## Action
+
+Use PascalCase for class names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.classes
+
+---
+id: booking-platform-instinct-naming-constants
+trigger: "When defining a constant"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Naming Constants
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constant names
+
+## Evidence
+
+- Pattern in codeStyle.namingConventions.constants
+
+---
+id: booking-platform-instinct-import-alias
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Import Alias
+
+## Action
+
+Use alias import style
+
+## Evidence
+
+- Pattern in codeStyle.importStyle
+
+---
+id: booking-platform-instinct-export-default
+trigger: "When exporting modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Export Default
+
+## Action
+
+Use default export style
+
+## Evidence
+
+- Pattern in codeStyle.exportStyle
+
+---
+id: booking-platform-instinct-try-catch-error-handling
+trigger: "When handling errors in code"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Try Catch Error Handling
+
+## Action
+
+Use try-catch blocks for error handling
+
+## Evidence
+
+- Pattern in errorHandling.style
+
+---
+id: booking-platform-instinct-test-location-mixed
+trigger: "When adding tests"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Test Location Mixed
+
+## Action
+
+Place test files alongside source files or in dedicated test directories as appropriate
+
+## Evidence
+
+- Pattern in architecture.folderStructure.testLocation
+
+---
+id: booking-platform-instinct-test-feature
+trigger: "When developing a new feature"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Test Feature
+
+## Action
+
+Add tests for the feature after implementation
+
+## Evidence
+
+- Observed in feature-development workflow: 'Add tests for feature' after implementation
+
+---
+id: booking-platform-instinct-git-conventional-commits
+trigger: "When writing a commit message"
+confidence: 0.95
+domain: git
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Git Conventional Commits
+
+## Action
+
+Use conventional commit prefixes (feat, fix, docs, chore) followed by a colon and a brief description
+
+## Evidence
+
+- Pattern in commits.prefixes
+- Examples: 'feat: implement must-have steps for booking-platform-frontend'
+
+---
+id: booking-platform-instinct-git-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Git Commit Length
+
+## Action
+
+Keep commit messages concise, around 60 characters on average
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: booking-platform-instinct-add-api-endpoint
+trigger: "When someone wants to add new backend functionality and make it available to the frontend"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Add Api Endpoint
+
+## Action
+
+Follow the workflow: implement backend service, update controller, expose endpoint, update frontend API client, update frontend UI, extend types if needed
+
+## Evidence
+
+- Workflow: add-or-extend-api-endpoint-backend-frontend
+- Commits and files in workflow example
+
+---
+id: booking-platform-instinct-add-domain-field
+trigger: "When someone wants to support new data in the system (e.g., categories for providers/services)"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Add Domain Field
+
+## Action
+
+Add field to backend entity, update DTOs, mappers, validation, repository, API endpoints, frontend types, and UI
+
+## Evidence
+
+- Workflow: add-or-extend-domain-model-with-new-field-or-entity
+- Commits and files in workflow example
+
+---
+id: booking-platform-instinct-feature-full-stack
+trigger: "When someone wants to deliver a new user-facing feature that spans backend and frontend"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Feature Full Stack
+
+## Action
+
+Implement backend logic, expose/update API, update frontend API/types, implement frontend UI, update navigation/guards, update documentation if needed
+
+## Evidence
+
+- Workflow: feature-development-full-stack
+- Commits and files in workflow example
+
+---
+id: booking-platform-instinct-add-frontend-page
+trigger: "When someone wants to add a new UI page or component or enhance an existing one"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Add Frontend Page
+
+## Action
+
+Create/update frontend page/component, update/add supporting API calls, update types if needed, wire up navigation/UI logic
+
+## Evidence
+
+- Workflow: add-or-update-frontend-page-or-component
+- Commits and files in workflow example
+
+---
+id: booking-platform-instinct-fix-backend-entity
+trigger: "When someone needs to resolve a backend bug or improve backend data handling"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: shaoxian04/Booking-Platform
+---
+
+# Booking Platform Instinct Fix Backend Entity
+
+## Action
+
+Update backend entity/DTO, validation/helper logic, controller/service, and repository/query as needed
+
+## Evidence
+
+- Workflow: fix-or-refactor-backend-entity-or-api
+- Commits and files in workflow example
+
